@@ -2,22 +2,10 @@
 import { CR, RC, AJRS } from './base_i2_success_codes'
 import bi1_data_validation from './base_i1_datavalidation'
 import base_i3_log from './base_i3_logging'
-// import checkIfWatchdogUserExists from './legacy_calls/p2s1t1_CheckIfUserExists'
-// import p2s1t3_CreateNewUser from './legacy_calls/p2s1t3_CreateNewUser'
 import 'vue'
 
 class bi8_vue_data_connectors {
 
-  //when we do website updates we want don't old cached data causing issues
-  // static bi8LocalStorageVersionCheck(version) {
-  //   var current_version = localStorage.getItem('watchdog_cache_version');
-    
-  //   if (current_version !== version || current_version === null) {
-  //     localStorage.clear();
-  //     localStorage.setItem('watchdog_cache_version',version)
-  //     console.log('clearing local storage');
-  //   }
-  // }
   static bi8SetVueUserInfoSuccess() {
     window.vue_instance.$root.$data.userInfo.firstName = window.G_watchdog_data.IV_user_info['first_name']
     window.vue_instance.$root.$data.userInfo.lastName = window.G_watchdog_data.IV_user_info['last_name']
@@ -48,27 +36,10 @@ class bi8_vue_data_connectors {
       window.G_firebase_auth.bi5FirebaseGuestFlagProperty
     );
 
-    // //refresh user info
-    // if(!G_firebase_auth.IV_is_guest) {
-    //   checkIfWatchdogUserExists(window.G_firebase_auth.IV_email_address).then(
-    //     function(){},
-    //     function() {
-    //       p2s1t3_CreateNewUser(
-    //         G_firebase_auth.IV_email_address, 
-    //         G_firebase_auth.IV_first_name,
-    //         G_firebase_auth.IV_last_name,
-    //         G_firebase_auth.IV_uid
-    //       ); 
-    //     }
-    //   );
-    // }
     window.G_watchdog_data.InitUserInfoListener();
   }
 
   static bi8SignOutCallback() {
-    window.vue_instance.$root.$data.watchdog.watchdogDbConnected = false;
-    localStorage.clear();
-    localStorage.removeItem('vuex');
     location.assign(window.location.origin + '/');
   }
 

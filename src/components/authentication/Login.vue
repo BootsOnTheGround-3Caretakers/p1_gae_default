@@ -87,17 +87,13 @@ export default {
   methods: {
     submit() {
       window.G_firebase_auth.bi5AttemptPasswordSignIn(this.form.email, this.form.password)
-        // .then(data => {
-        //   this.$router.replace({ name: "Home" });
-        // })
-        // .catch(err => {
-        //   this.error = err.message;
-        // });
     },
     signedInCallback: function() {
       this.$router.replace("/");
     },
     signInFailedCallback: function(error) {
+      // TODO - install npm module for awsome-notification and enable this code
+
       // if (error[0].code === 'auth/user-not-found'){
       //   let notification = 'User does not exist. Please create an account.'
       //   this.$store.commit('updateNotifications', notification)
@@ -114,6 +110,8 @@ export default {
       alert("sign in failed with error:" + JSON.stringify(error))
     },
     passwordResetSent: function() {
+      // TODO - install npm module for awsome-notification and enable this code
+      
       // let notification = 'You should receive a password reset email shortly.'
       // this.$store.commit('updateNotifications', notification)
       // this.$awn.info(notification)

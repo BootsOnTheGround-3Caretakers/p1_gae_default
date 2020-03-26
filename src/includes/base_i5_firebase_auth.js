@@ -302,79 +302,14 @@ class bi5_firebase {
 
     //if the global email var is set it should match user.email. the wrong user is logged in
 
-    if (user_auth_flag === false && user !== null && user.email !== null) {
+    if (user !== null && user.email !== null) {
       user_auth_flag = true;
     }
 
     /////</end> determine user sign in state logic
 
-    // /////passwordless login with email link
-    // if (user_auth_flag === false && firebase.auth().isSignInWithEmailLink(window.location.href)) {
-    //   var email = window.localStorage.getItem("emailForSignIn");
-    //   if (!email) {
-    //     // User opened the link on a different device. To prevent session fixation
-    //     // attacks, ask the user to provide the associated email again.
-    //     email = window.prompt("Please provide your email for confirmation");
-    //   }
-    //   // The client SDK will parse the code from the link for you.
-    //   firebase.auth().signInWithEmailLink(email, window.location.href).then(
-    //     function (result) {
-    //       // Clear email from storage.
-    //       window.localStorage.removeItem("emailForSignIn");
-    //       user_auth_flag = true;
-    //       return;
-    //     })
-    //     .catch(function (error) {
-    //       alert("error logging in with sign in link. Error: " + error);
-    //       return;
-    //     });
-    // }
-    // /////</end> passwordless login with email link
-
-    ///// look for the sign in flags
-    var login_flag = false;
-
-    var pathname = window.location.pathname.toLowerCase();
-    //this detects email link logins
-    if (pathname.indexOf('apiKey=') === 0) {
-      login_flag = true;
-    }
-    if (pathname.indexOf('mode=') === 0) {
-      login_flag = true;
-    }
-    // public pages don't load as guest
-    if (pathname.toLowerCase().indexOf('/login') === 0 ||
-        pathname.toLowerCase().indexOf('/home~' ) === 0 ||
-        pathname.toLowerCase().indexOf('/about~' ) === 0 ||
-        pathname.toLowerCase().indexOf('/downloads~' ) === 0) {
-        login_flag = true;
-    }
-
-    if (pathname.toLowerCase().indexOf('/automatic_user_creation/') === 0) {
-      login_flag = true;
-    }
-    ///// look for the sign in flags
-
-    // ///// anonymous login logic
-    // if (user_auth_flag === false && user === null && login_flag === false) {
-    //   CI.bi5GuestSignIn()
-    //   return;
-    // }
-
-    // if (user !== null && user.isAnonymous === true && (login_flag === false || CI.IV_guest_login_requested === true)) {
-    //   user_auth_flag = true;
-    // }
-    /////</end> anonymous login logic
-
     //// user is signed in or an anonymous user
     if (user_auth_flag === true) {
-      //// set user information from firebase object
-      // if (user.isAnonymous === true) {
-      //     CI.IV_user_is_anonymous = true;
-      //     CI.IV_displayName = "Guest User";
-      //     CI.IV_email_address = "guest@watchdog.dgnet.cloud";
-      //     CI.IV_is_guest = true;
-      // } else {
       CI.IV_is_guest = false;
       CI.IV_email_address = user.email;
       CI.IV_emailVerified = user.emailVerified;
@@ -407,20 +342,12 @@ class bi5_firebase {
       }
 
       CI.callCallBackFunction(CI.IV_login_page_callbacks['signed_in']);
-      // //////</end> if they are a guest, set guest name. if they are a user separate display name into first and last name
-      // if (CI.IV_token_verification_loop_active === true) {
-      //   CI.bi5forceTokenRefresh()
-      // } else {
-      //   CI.bi5forceTokenRefresh(true /*this param starts the verifaciton loop every X minutes*/)
-      // }
-
       return;
     }
     //// user is signed in or an anonymous user
 
     //if another tab signed the user out this will catch it
-    if (user_auth_flag === false && CI.IV_signout_requested_flag === false && CI.IV_token_update_count > 1) {
-      CI.IV_token_update_count = 0;
+    if (user_auth_flag === false && CI.IV_signout_requested_flag === false) {
       CI.callCallBackFunction(CI.IV_signed_out_global_callback);
     }
   }
@@ -669,8 +596,6 @@ class bi5_firebase {
     var return_msg = "base_i5_firebase_auth:bi5SignOut: ";
     var CI = this;
    
-    localStorage.removeItem('firebase_token');
-    localStorage.removeItem('firebase_token_expiration');
     CI.IV_signout_requested_flag = true;
     firebase.auth().signOut().then(
       function () {
@@ -680,6 +605,7 @@ class bi5_firebase {
         CI.IV_guest_login_requested = false;
         CI.IV_token_verification_loop_active = false;
         CI.IV_is_guest = false;
+        CI.IV_email_address = "";
         CI.callCallBackFunction(CI.IV_signed_out_global_callback());
       },
       function (error) {

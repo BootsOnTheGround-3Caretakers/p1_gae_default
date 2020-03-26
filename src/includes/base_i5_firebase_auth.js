@@ -347,7 +347,7 @@ class bi5_firebase {
     //// user is signed in or an anonymous user
 
     //if another tab signed the user out this will catch it
-    if (user_auth_flag === false && CI.IV_signout_requested_flag === false) {
+    if (user_auth_flag === false && CI.IV_signout_requested_flag === false && CI.IV_token_update_count !== 0) {
       CI.callCallBackFunction(CI.IV_signed_out_global_callback);
     }
   }

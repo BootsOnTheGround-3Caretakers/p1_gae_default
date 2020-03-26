@@ -23,13 +23,13 @@
           </li> 
            <!-- Dropdown -->
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
+            <a class="nav-link dropdown-toggle" href="javascript:;" id="navbardrop" data-toggle="dropdown">
               User
             </a>
             <div class="dropdown-menu">
-              <a class="dropdown-item" href="#">Home</a>
-              <a class="dropdown-item" href="#">Mu Clusters</a>
-              <a class="dropdown-item" href="#">Logout</a>
+              <a class="dropdown-item" href="javascript:;">Home</a>
+              <a class="dropdown-item" href="javascript:;">My Clusters</a>
+              <a class="dropdown-item" href="javascript:;" @click.stop="signOut">Logout</a>
             </div>
           </li>
         </ul>
@@ -39,5 +39,14 @@
 </template>
 
 <script>
+
+  export default {
+    name: "Header",
+    methods: {
+      signOut() {
+        window.G_firebase_auth.bi5SignOut();
+      }
+    }
+  }
   
 </script>

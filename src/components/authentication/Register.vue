@@ -104,16 +104,6 @@ export default {
   methods: {
     submit() {
       window.G_firebase_auth.bi5CreateUser(this.form.email, this.form.password)
-        // .then(data => {
-        //   data.user
-        //     .updateProfile({
-        //       displayName: this.form.name
-        //     })
-        //     .then(() => {});
-        // })
-        // .catch(err => {
-        //   this.error = err.message;
-        // });
     },
     signedInCallback: function() {
       this.$router.replace("/");

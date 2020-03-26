@@ -2,10 +2,10 @@
 import { CR, RC, AJRS } from './base_i2_success_codes'
 import bi1_data_validation from './base_i1_datavalidation'
 import base_i3_log from './base_i3_logging'
-import { ajax } from 'noquery-ajax';
-import bi6_misc from './base_i6_misc_functions'
+// import { ajax } from 'noquery-ajax';
+// import bi6_misc from './base_i6_misc_functions'
 import Vue from 'vue'
-import moment from 'moment';
+// import moment from 'moment';
 
 // CI == class instance
 // IV == instance variable

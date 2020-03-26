@@ -13,13 +13,13 @@
       <div class="collapse navbar-collapse" id="collapsibleNavbar">
         <ul class="navbar-nav ml-auto">
           <li class="nav-item">
-            <a class="nav-link" href="#">Home</a>
+            <router-link to="/" class="nav-link">Home</router-link>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">Sign In</a>
+            <router-link to="/login" class="nav-link">Sign In</router-link>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">Sign Up</a>
+            <router-link to="/register" class="nav-link">Register</router-link>
           </li> 
            <!-- Dropdown -->
           <li class="nav-item dropdown">

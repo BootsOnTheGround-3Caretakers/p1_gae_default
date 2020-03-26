@@ -2,7 +2,7 @@
 import { CR, RC, AJRS } from "./base_i2_success_codes";
 import bi1_data_validation from "./base_i1_datavalidation";
 import base_i3_log from "./base_i3_logging";
-import { ajax } from "noquery-ajax";
+// import { ajax } from "noquery-ajax";
 window.firebase = require('firebase')
 
 class bi5_firebase {
@@ -43,26 +43,18 @@ class bi5_firebase {
     CI.IV_token_updated_global_callback = null;
     CI.IV_initialized = false;
 
-    if (window.G_dev_flag === 1) {
-      var config = {
-        apiKey: "AIzaSyBj8wTCYHQwyhxixJpaHYgP-zyIqPWuStY",
-        authDomain: "dev-watchdog-user-interface.firebaseapp.com",
-        databaseURL: "https://dev-watchdog-user-interface.firebaseio.com",
-        projectId: "dev-watchdog-user-interface",
-        storageBucket: "dev-watchdog-user-interface.appspot.com",
-        messagingSenderId: "830658011085",
-      };
-    } else {
-      var config = {
-          apiKey: "AIzaSyCNAlmG-FswW0FVnhoIPABrU_HXhkUlrbs",
-          authDomain: "watchdog-user-interface.firebaseapp.com",
-          databaseURL: "https://watchdog-user-interface.firebaseio.com",
-          projectId: "watchdog-user-interface",
-          storageBucket: "watchdog-user-interface.appspot.com",
-          messagingSenderId: "193211188789",
-      };
-    }
-    firebase.initializeApp(config);
+    const firebaseConfig = {
+      apiKey: "AIzaSyDfvmMjlY6Qg1DFMQYmJIGDkdlYn0iug6E",
+      authDomain: "covid-19-f994f.firebaseapp.com",
+      databaseURL: "https://covid-19-f994f.firebaseio.com",
+      projectId: "covid-19-f994f",
+      storageBucket: "covid-19-f994f.appspot.com",
+      messagingSenderId: "892712693985",
+      appId: "1:892712693985:web:da0ef6b9dd8a92fa9ac7a0",
+      measurementId: "G-QJZQJVCHF5"
+    };
+
+    firebase.initializeApp(firebaseConfig);
   }
 
   get bi5FirebaseUidProperty() {
@@ -105,9 +97,7 @@ class bi5_firebase {
     return { success: RC.success, return_msg: return_msg, debug_data: debug_data };
   }
 
-  bi5SetLoginPageCallbacks(signing_in = null, signed_in = null, sign_in_failed = null, passwordless_email_sent = null, passwordless_email_failed = null,
-    email_valid = null, email_invalid = null, password_valid = null, password_invalid = null, create_user_failed = null, password_reset_sent = null,
-    password_reset_failed = null) {
+  bi5SetLoginPageCallbacks(callback_list) {
     var call_result = {};
     var debug_data = [];
     var return_msg = "bi5_firebase:bi5SetLoginPageCallbacks";
@@ -115,32 +105,43 @@ class bi5_firebase {
     var CI = this;
 
     var callback_id_list = [
-      'signing_in', 'signed_in', 'sign_in_failed',
+      'signed_in', 'sign_in_failed',
       'passwordless_email_sent', 'passwordless_email_failed',
       'email_valid', 'email_invalid', 'password_valid', 
       'password_invalid', 'create_user_failed', 'password_reset_sent', 
       'password_reset_failed'
     ]
-    var callback_list = [
-      signing_in, signed_in, sign_in_failed, passwordless_email_sent, 
-      passwordless_email_failed, email_valid, email_invalid, 
-      password_valid, password_invalid, create_user_failed, 
-      password_reset_sent, password_reset_failed
-    ]
+    var callback_key_list = {
+      'signing_in': callback_list['signing_in'], 
+      'signed_in' : callback_list['signed_in'], 
+      'sign_in_failed' : callback_list['sign_in_failed'], 
+      'passwordless_email_sent' : callback_list['passwordless_email_sent'], 
+      'passwordless_email_failed' : callback_list['passwordless_email_failed'], 
+      'email_valid' : callback_list['email_valid'], 
+      'email_invalid' : callback_list['email_invalid'], 
+      'password_valid' : callback_list['password_valid'], 
+      'password_invalid' : callback_list['password_invalid'], 
+      'create_user_failed' : callback_list['create_user_failed'], 
+      'password_reset_sent' : callback_list['password_reset_sent'], 
+      'password_reset_failed': callback_list['password_reset_failed']
+    }
 
     ////// if a callback is set validate and store its reference, otherwise set that callback to null
-    for (var index in callback_list) {
-      if (callback_list[index] === null) {
-        CI.IV_login_page_callbacks[callback_id_list[index]] = null;
+    for (var index in callback_id_list) {
+      let callback_id = callback_id_list[index];
+
+      if (callback_key_list[callback_id] === null || callback_key_list[callback_id] === undefined) {
+        CI.IV_login_page_callbacks[callback_id] = null;
         continue;
       }
 
-      call_result = bi1_data_validation.is_function(callback_list[index]);
+      call_result = bi1_data_validation.is_function(callback_key_list[callback_id]);
       debug_data.push(call_result);
+
       if (call_result[CR.success] === RC.success) {
-        CI.IV_login_page_callbacks[callback_id_list[index]] = callback_list[index];
+        CI.IV_login_page_callbacks[callback_id] = callback_key_list[callback_id];
       } else {
-        CI.IV_login_page_callbacks[callback_id_list[index]] = null;
+        CI.IV_login_page_callbacks[callback_id] = null;
       }
     }
     //////</end> if a callback is set validate and store its reference, otherwise set that callback to null
@@ -301,38 +302,34 @@ class bi5_firebase {
 
     //if the global email var is set it should match user.email. the wrong user is logged in
 
-    if (user_auth_flag === false && user !== null && user.email !== null && email !== null && email !== undefined && user.email !== email) {
-      user_auth_flag = false;
-    }
-    // if the user is not null and the email isn't null but the global email is null this is a page reresh
-    else if (user_auth_flag === false && user !== null && user.email !== null) {
+    if (user_auth_flag === false && user !== null && user.email !== null) {
       user_auth_flag = true;
     }
 
     /////</end> determine user sign in state logic
 
-    /////passwordless login with email link
-    if (user_auth_flag === false && firebase.auth().isSignInWithEmailLink(window.location.href)) {
-      var email = window.localStorage.getItem("emailForSignIn");
-      if (!email) {
-        // User opened the link on a different device. To prevent session fixation
-        // attacks, ask the user to provide the associated email again.
-        email = window.prompt("Please provide your email for confirmation");
-      }
-      // The client SDK will parse the code from the link for you.
-      firebase.auth().signInWithEmailLink(email, window.location.href).then(
-        function (result) {
-          // Clear email from storage.
-          window.localStorage.removeItem("emailForSignIn");
-          user_auth_flag = true;
-          return;
-        })
-        .catch(function (error) {
-          alert("error logging in with sign in link. Error: " + error);
-          return;
-        });
-    }
-    /////</end> passwordless login with email link
+    // /////passwordless login with email link
+    // if (user_auth_flag === false && firebase.auth().isSignInWithEmailLink(window.location.href)) {
+    //   var email = window.localStorage.getItem("emailForSignIn");
+    //   if (!email) {
+    //     // User opened the link on a different device. To prevent session fixation
+    //     // attacks, ask the user to provide the associated email again.
+    //     email = window.prompt("Please provide your email for confirmation");
+    //   }
+    //   // The client SDK will parse the code from the link for you.
+    //   firebase.auth().signInWithEmailLink(email, window.location.href).then(
+    //     function (result) {
+    //       // Clear email from storage.
+    //       window.localStorage.removeItem("emailForSignIn");
+    //       user_auth_flag = true;
+    //       return;
+    //     })
+    //     .catch(function (error) {
+    //       alert("error logging in with sign in link. Error: " + error);
+    //       return;
+    //     });
+    // }
+    // /////</end> passwordless login with email link
 
     ///// look for the sign in flags
     var login_flag = false;
@@ -358,40 +355,40 @@ class bi5_firebase {
     }
     ///// look for the sign in flags
 
-    ///// anonymous login logic
-    if (user_auth_flag === false && user === null && login_flag === false) {
-      CI.bi5GuestSignIn()
-      return;
-    }
+    // ///// anonymous login logic
+    // if (user_auth_flag === false && user === null && login_flag === false) {
+    //   CI.bi5GuestSignIn()
+    //   return;
+    // }
 
-    if (user !== null && user.isAnonymous === true && (login_flag === false || CI.IV_guest_login_requested === true)) {
-      user_auth_flag = true;
-    }
+    // if (user !== null && user.isAnonymous === true && (login_flag === false || CI.IV_guest_login_requested === true)) {
+    //   user_auth_flag = true;
+    // }
     /////</end> anonymous login logic
 
     //// user is signed in or an anonymous user
     if (user_auth_flag === true) {
       //// set user information from firebase object
-      if (user.isAnonymous === true) {
-          CI.IV_user_is_anonymous = true;
-          CI.IV_displayName = "Guest User";
-          CI.IV_email_address = "guest@watchdog.dgnet.cloud";
-          CI.IV_is_guest = true;
-      } else {
-          CI.IV_is_guest = false;
-          CI.IV_email_address = user.email;
-          CI.IV_emailVerified = user.emailVerified;
-          CI.IV_photoURL = user.photoURL;
-      }
+      // if (user.isAnonymous === true) {
+      //     CI.IV_user_is_anonymous = true;
+      //     CI.IV_displayName = "Guest User";
+      //     CI.IV_email_address = "guest@watchdog.dgnet.cloud";
+      //     CI.IV_is_guest = true;
+      // } else {
+      CI.IV_is_guest = false;
+      CI.IV_email_address = user.email;
+      CI.IV_emailVerified = user.emailVerified;
+      CI.IV_photoURL = user.photoURL;
+      // }
       CI.IV_uid = user.uid;
       CI.IV_providerData = user.providerData;
       ////</end> set user information from firebase object
 
       ////// if they are a guest, set guest name. if they are a user separate display name into first and last name
       if (user.displayName === null) {
-        CI.IV_first_name = "DGnet Watchdog User";
+        CI.IV_first_name = "New User";
         CI.IV_last_name = " ";
-        CI.IV_displayName = "DGnet Watchdog User";
+        CI.IV_displayName = "New User";
       } else {
         CI.IV_displayName = user.displayName;
         if (CI.IV_displayName.indexOf(" ") > 0) {
@@ -408,12 +405,14 @@ class bi5_firebase {
           CI.IV_last_name = " ";
         }
       }
-      //////</end> if they are a guest, set guest name. if they are a user separate display name into first and last name
-      if (CI.IV_token_verification_loop_active === true) {
-        CI.bi5forceTokenRefresh()
-      } else {
-        CI.bi5forceTokenRefresh(true /*this param starts the verifaciton loop every X minutes*/)
-      }
+
+      CI.callCallBackFunction(CI.IV_login_page_callbacks['signed_in']);
+      // //////</end> if they are a guest, set guest name. if they are a user separate display name into first and last name
+      // if (CI.IV_token_verification_loop_active === true) {
+      //   CI.bi5forceTokenRefresh()
+      // } else {
+      //   CI.bi5forceTokenRefresh(true /*this param starts the verifaciton loop every X minutes*/)
+      // }
 
       return;
     }

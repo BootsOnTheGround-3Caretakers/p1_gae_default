@@ -34,9 +34,6 @@
     </div>
     <br />
     <div class="container">
-      <div class="row">
-        <div class="success-message">{{DV_successMessage}}</div>
-      </div>
       <div class="row pl-4 pr-4">
         <div class="col-md">
           <h4>Needers {{C_filteredNeeders.length}} </h4>
@@ -55,6 +52,7 @@
                 <tr v-for="needer in C_filteredNeeders" :key="needer._id">
                   <td>
                     <input 
+                      style="cursor: pointer;" 
                       type="radio" 
                       name="select_needer" 
                       v-model="DV_selectedNeeder"
@@ -92,6 +90,7 @@
                 <tr v-for="careTaker in C_filteredCareTakers" :key="careTaker._id">
                   <td>
                     <input 
+                      style="cursor: pointer;" 
                       type="checkbox" 
                       name="select_care_taker" 
                       v-model="careTaker.selected" 
@@ -119,6 +118,7 @@
 
 <script>
 import http from 'axios'
+import AWN from "awesome-notifications";
 
 export default {
   name: 'p1Home',
@@ -132,7 +132,6 @@ export default {
       DV_zipFilter: "",
       DV_needersData: [],
       DV_careTakersData: [],
-      DV_successMessage: "",
       DV_selectedNeeder: null,
       DV_careTakerZipFilter: ""
     }
@@ -226,7 +225,9 @@ export default {
           if (index !== undefined) {
             this.DV_needersData.splice(index, 1);
           }
+          this.$awn.success("Needer User was removed successfully.");
         }).catch((error) => {
+          this.$awn.warning("There was an issue while removing the Needer User.");
           console.log(error);
         });
       }
@@ -240,7 +241,9 @@ export default {
           if (index !== undefined) {
             this.DV_careTakersData.splice(index, 1);
           }
+          this.$awn.success("Care Taker was removed successfully.");
         }).catch((error) => {
+          this.$awn.warning("There was an issue while removing the Care Taker.");
           console.log(error);
         });
       }
@@ -249,19 +252,19 @@ export default {
       let vm = this;
 
       if (this.DV_selectedNeeder === null || this.DV_selectedNeeder === undefined) {
-        alert("Please select a needer before creating Cluster");
+        this.$awn.warning("Please select a needer before creating Cluster.");
         return;
       }
       
       let selected_care_takers = this.C_filteredCareTakers.filter((item) => item.selected)
       if (selected_care_takers.length === 0) {
-        alert("Please select careTakers before creating Cluster");
+        this.$awn.warning("Please select careTakers before creating Cluster");
         return;
       }
       
       if (selected_care_takers.length > 10) {
-        alert('Care takers cannot exceed 10');
-        return false;
+        this.$awn.warning('Care takers cannot exceed 10');
+        return;
       }
 
       let extraJsonObj = [];
@@ -283,8 +286,9 @@ export default {
 
       http.post(this.DV_apiHost + this.DV_matchedClustersTable, data)
       .then((response) => {
-        console.log("formCluster returned");
+        this.$awn.success("Cluster formed successfully.");
       }, (error) => {
+        this.$awn.warning("There was an issue while creating this Cluster.");
         console.log(error);
       });
 

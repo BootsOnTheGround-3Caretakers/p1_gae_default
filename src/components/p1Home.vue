@@ -195,7 +195,7 @@ export default {
   methods: {
     fetchUsersList() {
       var query = '';
-      if(this.DV_zipSearchQuery) {
+      if (this.DV_zipSearchQuery) {
         query = `?query=%7B%22ZipCode%22:%22${this.DV_zipSearchQuery}%22%7D`;
       }
 
@@ -215,8 +215,35 @@ export default {
           console.log(error);
         })
     },
-    removeUser(id, type) {
+    removeUser(user_uid, type) {
+      if (type === "needers") {
+        http.delete(this.DV_apiHost + this.DV_neederTable + '/' + user_uid)
+        .then((response) => {
+          let index = this.DV_needersData.findIndex((item) => {
+            return item._id === user_uid;
+          });
 
+          if (index !== undefined) {
+            this.DV_needersData.splice(index, 1);
+          }
+        }).catch((error) => {
+          console.log(error);
+        });
+      }
+      else if (type === "careTakers") {
+        http.delete(this.DV_apiHost + this.DV_careTakerTable + '/' + user_uid)
+        .then((response) => {
+          let index = this.DV_careTakersData.findIndex((item) => {
+            return item._id === user_uid;
+          });
+          
+          if (index !== undefined) {
+            this.DV_careTakersData.splice(index, 1);
+          }
+        }).catch((error) => {
+          console.log(error);
+        });
+      }
     },
     formCluster() {
       let vm = this;
@@ -232,7 +259,7 @@ export default {
         return;
       }
       
-      if (selected_care_takers.length > 10){
+      if (selected_care_takers.length > 10) {
         alert('Care takers cannot exceed 10');
         return false;
       }
@@ -254,7 +281,7 @@ export default {
       }
       data['ExtraJSONstrings'] = JSON.stringify(extraJsonObj);
 
-      http.post(this.apiHost + this.matchedClustersTable, data)
+      http.post(this.DV_apiHost + this.DV_matchedClustersTable, data)
       .then((response) => {
         console.log("formCluster returned");
       }, (error) => {
@@ -265,7 +292,7 @@ export default {
       this.removeUser(this.DV_selectedNeeder._id, 'needers');
       this.DV_selectedNeeder = null;
 
-      for(var index = 0; index < selected_care_takers.length; index++) {
+      for (var index = 0; index < selected_care_takers.length; index++) {
         this.removeUser(selected_care_takers[index]._id, 'careTakers');
       }
     }

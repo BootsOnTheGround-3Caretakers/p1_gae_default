@@ -1,5 +1,5 @@
 <template>
-  <div class="fixed-bottom" style="position: relative !important;">
+  <div class="fixed-bottom">
     <p>
       CoronavirusArmy | <a href="https://www.coronavirusarmy.org">coronavirusarmy.org</a> | 2020
     </p>

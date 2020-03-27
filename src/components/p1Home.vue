@@ -5,13 +5,27 @@
         <h1>People by Postal Code</h1>
       </div>
     </div>
-    <div class="container">
+    <div v-if="Object.keys(C_zipSummary).length > 0" class="container">
       <h4>Zip Code Lookup</h4>
-      <span class="zip-buttons">
-        <button v-for="(value, name, index) in C_zipSummary" @click.stop="DV_zipFilter = name">{{name}} - {{value.needers}} : {{value.careTakers}}</button>
-        <button @click.stop="DV_zipFilter = ''" title="Clear filter">X</button>
-        Zip code: <input v-model="DV_zipSearchQuery" /> <button name="search" @click.stop="fetchUsersList">Search</button>
-      </span>
+      <div class="zip-buttons">
+        <button 
+          class="btn zip-summary-button" 
+          :class="{'active': DV_zipFilter === name}" 
+          v-for="(value, name, index) in C_zipSummary" 
+          @click.stop="DV_zipFilter = name"
+        >{{name}} - {{value.needers}} : {{value.careTakers}}</button>
+
+        <button 
+          class="btn btn-danger" 
+          @click.stop="DV_zipFilter = ''" 
+          title="Clear filter"
+        >X</button>
+      </div>
+      <div class="mt-3">
+        Zip code: 
+        <input class="rounded p-1" v-model="DV_zipSearchQuery" placeholder="Search by zip code"/> 
+        <button class="btn btn-info" name="search" @click.stop="fetchUsersList">Search</button>
+      </div>
       <br />
       <br />
       <center>
@@ -44,7 +58,7 @@
                       type="radio" 
                       name="select_needer" 
                       v-model="DV_selectedNeeder"
-                      :value="needer._id" 
+                      :value="needer" 
                     />
                   </td>
                   <td>{{needer.ZipCode}}</td>
@@ -119,7 +133,8 @@ export default {
       DV_needersData: [],
       DV_careTakersData: [],
       DV_successMessage: "",
-      DV_selectedNeeder: ""
+      DV_selectedNeeder: null,
+      DV_careTakerZipFilter: ""
     }
   },
   mounted() {
@@ -136,31 +151,41 @@ export default {
     },
     C_filteredCareTakers() {
       var vm = this;
-      if (this.DV_zipFilter === "") {
-        return this.DV_careTakersData
+      var filtered_entries = this.DV_careTakersData;
+
+      if (this.DV_zipFilter === "" && this.DV_careTakerZipFilter === "") {
+        return filtered_entries;
       }
-      return this.DV_careTakersData.filter(item => item.ZipCode == vm.DV_zipFilter);
+
+      if (this.DV_zipFilter !== "") {
+        filtered_entries = filtered_entries.filter(item => item.ZipCode === vm.DV_zipFilter);
+      }
+      
+      if (this.DV_careTakerZipFilter !== "") {
+        filtered_entries = filtered_entries.filter((item) => item.ZipCode === this.DV_careTakerZipFilter);
+      }
+      return filtered_entries;
     },
     C_zipSummary() {
       let summary = {}
-      let tmp;
+      let zip;
       for (var index in this.DV_needersData) {
-        tmp = this.DV_needersData[index].ZipCode;
-        if(typeof summary[tmp] == "undefined") {
-          summary[tmp] = {needers : 1, careTakers : 0};
-        }
-        else{
-          summary[tmp].needers++;
+        zip = this.DV_needersData[index].ZipCode;
+
+        if (typeof summary[zip] == "undefined") {
+          summary[zip] = {needers : 1, careTakers : 0};
+        } else{
+          summary[zip].needers++;
         }
       }
 
-      for( var index in this.DV_careTakersData) {
-        tmp = this.DV_careTakersData[index].ZipCode;
-        if(typeof summary[tmp] == "undefined") {
-          summary[tmp] = {needers : 0, careTakers : 1};
-        }
-        else{
-          summary[tmp].careTakers++;
+      for ( var index in this.DV_careTakersData) {
+        zip = this.DV_careTakersData[index].ZipCode;
+
+        if (typeof summary[zip] == "undefined") {
+          summary[zip] = {needers : 0, careTakers : 1};
+        } else {
+          summary[zip].careTakers++;
         }
       }
 
@@ -191,10 +216,67 @@ export default {
         })
     },
     removeUser(id, type) {
-      alert("TODO");
+
     },
     formCluster() {
-      alert("TODO");
+      let vm = this;
+
+      if (this.DV_selectedNeeder === null || this.DV_selectedNeeder === undefined) {
+        alert("Please select a needer before creating Cluster");
+        return;
+      }
+      
+      let selected_care_takers = this.C_filteredCareTakers.filter((item) => item.selected)
+      if (selected_care_takers.length === 0) {
+        alert("Please select careTakers before creating Cluster");
+        return;
+      }
+      
+      if (selected_care_takers.length > 10){
+        alert('Care takers cannot exceed 10');
+        return false;
+      }
+
+      let extraJsonObj = [];
+      extraJsonObj.push(this.DV_selectedNeeder);
+
+      let data = {
+        NeederEmail : this.DV_selectedNeeder.email,
+        ZipCodeCommon : this.DV_selectedNeeder.ZipCode
+      }
+
+      for (let index in selected_care_takers) {
+        let care_taker = selected_care_takers[index];
+
+        let prop_name = `Caretaker${++index}Email`;
+        data[prop_name] = care_taker.email;
+        extraJsonObj.push(care_taker);
+      }
+      data['ExtraJSONstrings'] = JSON.stringify(extraJsonObj);
+
+      http.post(this.apiHost + this.matchedClustersTable, data)
+      .then((response) => {
+        console.log("formCluster returned");
+      }, (error) => {
+        console.log(error);
+      });
+
+      // Delete the selected records
+      this.removeUser(this.DV_selectedNeeder._id, 'needers');
+      this.DV_selectedNeeder = null;
+
+      for(var index = 0; index < selected_care_takers.length; index++) {
+        this.removeUser(selected_care_takers[index]._id, 'careTakers');
+      }
+    }
+  },
+  watch: {
+    DV_selectedNeeder() {
+      if (this.DV_selectedNeeder !== null && this.DV_selectedNeeder !== undefined) {
+        this.DV_careTakerZipFilter = this.DV_selectedNeeder.ZipCode;
+      } else {
+        this.DV_careTakerZipFilter = "";
+      }
     }
   }
 }

@@ -24,6 +24,7 @@
     "vue": "^2.5.2",
     "vue-router": "^3.0.1",
     "vue-awesome-notifications": "^2.2.9",
+    "noquery-ajax": "^1.1.0",
     "vue-spinner": "^1.0.3"
   },
   "devDependencies": {

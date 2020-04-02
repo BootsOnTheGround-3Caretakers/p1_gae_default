@@ -44,14 +44,13 @@ class bi5_firebase {
     CI.IV_initialized = false;
 
     const firebaseConfig = {
-      apiKey: "AIzaSyDfvmMjlY6Qg1DFMQYmJIGDkdlYn0iug6E",
-      authDomain: "covid-19-f994f.firebaseapp.com",
-      databaseURL: "https://covid-19-f994f.firebaseio.com",
-      projectId: "covid-19-f994f",
-      storageBucket: "covid-19-f994f.appspot.com",
-      messagingSenderId: "892712693985",
-      appId: "1:892712693985:web:da0ef6b9dd8a92fa9ac7a0",
-      measurementId: "G-QJZQJVCHF5"
+      apiKey: "AIzaSyAZyxcb_KbKh-9FbPXT5TzPGHDkQjjvOGU",
+      authDomain: "aqueous-choir-160420.firebaseapp.com",
+      databaseURL: "https://aqueous-choir-160420.firebaseio.com",
+      projectId: "aqueous-choir-160420",
+      storageBucket: "aqueous-choir-160420.appspot.com",
+      messagingSenderId: "803327100407",
+      appId: "1:803327100407:web:b42aa005bf90f105425af2"
     };
 
     firebase.initializeApp(firebaseConfig);

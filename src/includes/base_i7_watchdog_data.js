@@ -13,6 +13,8 @@ import Vue from 'vue'
 class bi7_watchdog_firebase {
   constructor() {
     var CI = this;
+    
+    // Firebase related IVs
     CI.IV_firebase_db_object = null;
     CI.IV_id_token_pointer = '';
     CI.IV_firebase_uid_pointer = '';
@@ -20,12 +22,26 @@ class bi7_watchdog_firebase {
     CI.IV_firebase_email_pointer = '';
     CI.IV_instance_initialized = false;
     CI.IV_user_folder_path = ''
-    CI.IV_data_change_callbacks = {'IV_user_info': null};
+    
+    // User INFO IVs
     CI.IV_users_contact_email = {};
     CI.IV_listener_user_info = {};
     CI.IV_user_info = { 'uid': 0, 'contact_email': '', 'first_name': '', 'last_name': '','web_uid' :'' };
+
+    // Callbacks Related IVs
+    CI.IV_data_change_callbacks = {'IV_user_info': null};
     CI.IV_success_global_callbacks = {};
     CI.IV_failure_global_callbacks = {};
+
+    // Listeners references IVs
+    CI.IV_listener_needs_last_updated_global = null;
+    CI.IV_listener_skills_last_updated_global = null;
+
+    // DataStructures IVs
+    CI.IV_needs_last_updated = {};
+    CI.IV_skills_last_updated = {};
+    CI.IV_needs_meta_data = {};
+    CI.IV_skills_meta_data = {};
   }
 
 
@@ -224,6 +240,351 @@ class bi7_watchdog_firebase {
     
   }
 
+  InitUserInfoListener() {
+    var debug_data = [];
+    var call_result = {};
+    var return_msg = "bi7_watchdog_firebase:InitUserInfoListener ";
+    var task_id = "bi7_watchdog_firebase:InitUserInfoListener";
+    var CI = this;
+
+    if (CI.IV_instance_initialized === false) {
+      return_msg += 'instance is not initialized';
+      base_i3_log(G_username, G_ip, G_page_id, task_id, RC.firebase_failure, return_msg, debug_data);
+      return { 'success': RC.input_validation_failed, 'return_msg': return_msg, 'debug_data': debug_data };
+    }
+
+    // TODO- Add here logic to fetch user's information
+     
+    CI.callCallBackFunction(CI.IV_data_change_callbacks['IV_user_info']);
+
+  }
+
+  bi7initNeedsLastUpdatedGlobalListener() {
+    var debug_data = [];
+    var call_result = {};
+    var return_msg = "bi7_watchdog_firebase:bi7initNeedsLastUpdatedGlobalListener ";
+    var task_id = "bi7_watchdog_firebase:bi7initNeedsLastUpdatedGlobalListener";
+    var CI = this;
+
+    if (CI.IV_listener_needs_last_updated_global !== null) { return; }
+
+    var listener_location = 'needs_last_updated';
+    CI.IV_listener_needs_last_updated_global = CI.IV_firebase_db_object.ref(listener_location);
+
+    ///// removing invalid firebase listener key
+    call_result = CI.validateFirebaseListener(CI.IV_listener_needs_last_updated_global);
+    debug_data.push(call_result)
+    if (call_result[CR.success] !== RC.success) {
+      delete CI.IV_listener_needs_last_updated_global;
+      return_msg += "failed to create listener for " + listener_location;
+      base_i3_log(G_username, G_ip, G_page_id, task_id, RC.firebase_failure, return_msg, debug_data);
+      return { 'success': RC.firebase_failure, 'return_msg': return_msg, 'debug_data': debug_data };
+    }
+    ///// </end> removing invalid firebase listener key
+
+    CI.IV_listener_needs_last_updated_global.on("value",
+      function (a_data) { CI.bi7NeedsLastUpdatedGlobalListener(a_data) }.bind(CI),
+      function (errorObject) {
+        return_msg += "firebase read failed with error data:" + errorObject;
+        base_i3_log(G_username, G_ip, G_page_id, task_id, RC.firebase_failure, return_msg, debug_data);
+      }.bind(CI)
+    );
+
+    return { 'success': RC.success, 'return_msg': return_msg, 'debug_data': debug_data };
+  }
+
+  bi7NeedsLastUpdatedGlobalListener(data) {
+    var debug_data = [];
+    var call_result = {};
+    var return_msg = "bi7_watchdog_firebase:bi7NeedsLastUpdatedGlobalListener ";
+    var task_id = "bi7_watchdog_firebase:bi7NeedsLastUpdatedGlobalListener";
+    var CI = this;
+
+    ////// input validation
+    if (data === null) {
+      return_msg += "data argument is null";
+      base_i3_log(G_username, G_ip, G_page_id, task_id, RC.input_validation_failed, return_msg, debug_data);
+      return { 'success': RC.input_validation_failed, 'return_msg': return_msg, 'debug_data': debug_data };
+    }
+    //////</end> input validation
+
+    var firebase_data = data.val();
+
+    for (let need_uid in firebase_data) {
+      if (need_uid === "deletion_prevention_key") {continue;}
+
+      if (need_uid in CI.IV_needs_last_updated === false) {
+        Vue.set(CI.IV_needs_last_updated, need_uid, {});
+      }
+
+      if ('last_updated' in CI.IV_needs_last_updated[need_uid] === false) {
+        Vue.set(CI.IV_needs_last_updated[need_uid], 'last_updated', firebase_data[need_uid]['last_updated']);
+        CI.bi7GetNeedMetaDataOnce(need_uid);
+      } else if ('last_updated' in CI.IV_needs_last_updated[need_uid] === true) {
+        if (CI.IV_needs_last_updated[need_uid]['last_updated'] < firebase_data[need_uid]['last_updated']) {
+          Vue.set(CI.IV_needs_last_updated[need_uid], 'last_updated', firebase_data[need_uid]['last_updated']);
+          CI.bi7GetNeedMetaDataOnce(need_uid);
+        }
+      }
+    }
+
+    return { 'success': RC.success, 'return_msg': return_msg, 'debug_data': debug_data };
+  }
+
+  bi7GetNeedMetaDataOnce(need_uid) {
+    var debug_data = [];
+    var call_result = {};
+    var return_msg = "bi7_watchdog_firebase:bi7GetNeedMetaDataOnce ";
+    var task_id = "bi7_watchdog_firebase:bi7GetNeedMetaDataOnce";
+    var CI = this;
+
+    ////// input validation 
+
+    // TODO!~ mu- confirm format and create validation function in base_i1
+    // call_result = bi1_data_validation.is_need_uid(need_uid);
+    // debug_data.push(call_result);
+    // if (call_result[CR.success] !== RC.success) {
+    //   return_msg += "input validation failed";
+    //   base_i3_log(G_username, G_ip, G_page_id, task_id, RC.input_validation_failed, return_msg, debug_data);
+    //   return { 'success': call_result[CR.success], 'return_msg': return_msg, 'debug_data': debug_data };
+    // }
+    //////</end> input validation 
+
+    var listener_location = `needs_meta_data/${need_uid}`;
+    var location_ref = CI.IV_firebase_db_object.ref(listener_location);
+
+    ///// removing invalid firebase listener key
+    call_result = CI.validateFirebaseListener(location_ref);
+    debug_data.push(call_result)
+    if (call_result[CR.success] !== RC.success) {
+      return_msg += "failed to create listener for " + listener_location;
+      base_i3_log(G_username, G_ip, G_page_id, task_id, RC.firebase_failure, return_msg, debug_data);
+      return { 'success': RC.firebase_failure, 'return_msg': return_msg, 'debug_data': debug_data };
+    }
+    ///// </end> removing invalid firebase listener key
+
+    location_ref.on("value",
+      function (a_data) { CI.bi7NeedMetaDataOnceCallback(need_uid, a_data) }.bind(CI),
+      function (errorObject) {
+        return_msg += "firebase read failed with error data:" + errorObject;
+        base_i3_log(G_username, G_ip, G_page_id, task_id, RC.firebase_failure, return_msg, debug_data);
+      }.bind(CI)
+    );
+  }
+
+  bi7NeedMetaDataOnceCallback(need_uid, data) {
+    var debug_data = [];
+    var call_result = {};
+    var return_msg = "bi7_watchdog_firebase:bi7NeedMetaDataOnceCallback ";
+    var task_id = "bi7_watchdog_firebase:bi7NeedMetaDataOnceCallback";
+    var CI = this;
+
+    ////// input validation 
+
+    // TODO!~ mu- confirm format and create validation function in base_i1
+    // call_result = bi1_data_validation.is_need_uid(need_uid);
+    // debug_data.push(call_result);
+    // if (call_result[CR.success] !== RC.success) {
+    //   return_msg += "input validation failed";
+    //   base_i3_log(G_username, G_ip, G_page_id, task_id, RC.input_validation_failed, return_msg, debug_data);
+    //   return { 'success': call_result[CR.success], 'return_msg': return_msg, 'debug_data': debug_data };
+    // }
+
+    if (data === null) {
+      return_msg += "data argument is null";
+      base_i3_log(G_username, G_ip, G_page_id, task_id, RC.input_validation_failed, return_msg, debug_data);
+      return { 'success': RC.input_validation_failed, 'return_msg': return_msg, 'debug_data': debug_data };
+    }
+    //////</end> input validation 
+
+    var firebase_data = data.val();
+
+
+    if (need_uid in CI.IV_needs_meta_data === false) {
+      Vue.set(CI.IV_needs_meta_data, need_uid, {});
+    }
+
+    if ('name' in firebase_data === true && typeof (firebase_data['name']) === "string") {
+      Vue.set(CI.IV_needs_meta_data[need_uid], 'name', firebase_data['name']);
+    }
+
+    if ('requirements' in firebase_data === true && typeof (firebase_data['requirements']) === "string") {
+      Vue.set(CI.IV_needs_meta_data[need_uid], 'requirements', firebase_data['requirements']);
+    }
+
+    return { 'success': RC.success, 'return_msg': return_msg, 'debug_data': debug_data };
+  }
+
+
+
+
+
+
+
+
+
+
+
+  bi7initSkillsLastUpdatedGlobalListener() {
+    var debug_data = [];
+    var call_result = {};
+    var return_msg = "bi7_watchdog_firebase:bi7initSkillsLastUpdatedGlobalListener ";
+    var task_id = "bi7_watchdog_firebase:bi7initSkillsLastUpdatedGlobalListener";
+    var CI = this;
+
+    if (CI.IV_listener_skills_last_updated_global !== null) { return; }
+
+    var listener_location = 'skills_last_updated';
+    CI.IV_listener_skills_last_updated_global = CI.IV_firebase_db_object.ref(listener_location);
+
+    ///// removing invalid firebase listener key
+    call_result = CI.validateFirebaseListener(CI.IV_listener_skills_last_updated_global);
+    debug_data.push(call_result)
+    if (call_result[CR.success] !== RC.success) {
+      delete CI.IV_listener_skills_last_updated_global;
+      return_msg += "failed to create listener for " + listener_location;
+      base_i3_log(G_username, G_ip, G_page_id, task_id, RC.firebase_failure, return_msg, debug_data);
+      return { 'success': RC.firebase_failure, 'return_msg': return_msg, 'debug_data': debug_data };
+    }
+    ///// </end> removing invalid firebase listener key
+
+    CI.IV_listener_skills_last_updated_global.on("value",
+      function (a_data) { CI.bi7SkillsLastUpdatedGlobalListener(a_data) }.bind(CI),
+      function (errorObject) {
+        return_msg += "firebase read failed with error data:" + errorObject;
+        base_i3_log(G_username, G_ip, G_page_id, task_id, RC.firebase_failure, return_msg, debug_data);
+      }.bind(CI)
+    );
+
+    return { 'success': RC.success, 'return_msg': return_msg, 'debug_data': debug_data };
+  }
+
+  bi7SkillsLastUpdatedGlobalListener(data) {
+    var debug_data = [];
+    var call_result = {};
+    var return_msg = "bi7_watchdog_firebase:bi7SkillsLastUpdatedGlobalListener ";
+    var task_id = "bi7_watchdog_firebase:bi7SkillsLastUpdatedGlobalListener";
+    var CI = this;
+
+    ////// input validation
+    if (data === null) {
+      return_msg += "data argument is null";
+      base_i3_log(G_username, G_ip, G_page_id, task_id, RC.input_validation_failed, return_msg, debug_data);
+      return { 'success': RC.input_validation_failed, 'return_msg': return_msg, 'debug_data': debug_data };
+    }
+    //////</end> input validation
+
+    var firebase_data = data.val();
+
+    for (let skill_uid in firebase_data) {
+      if (skill_uid === "deletion_prevention_key") {continue;}
+
+      if (skill_uid in CI.IV_skills_last_updated === false) {
+        Vue.set(CI.IV_skills_last_updated, skill_uid, {});
+      }
+
+      if ('last_updated' in CI.IV_skills_last_updated[skill_uid] === false) {
+        Vue.set(CI.IV_skills_last_updated[skill_uid], 'last_updated', firebase_data[skill_uid]['last_updated']);
+        CI.bi7GetSkillMetaDataOnce(skill_uid);
+      } else if ('last_updated' in CI.IV_skills_last_updated[skill_uid] === true) {
+        if (CI.IV_skills_last_updated[skill_uid]['last_updated'] < firebase_data[skill_uid]['last_updated']) {
+          Vue.set(CI.IV_skills_last_updated[skill_uid], 'last_updated', firebase_data[skill_uid]['last_updated']);
+          CI.bi7GetSkillMetaDataOnce(skill_uid);
+        }
+      }
+    }
+
+    return { 'success': RC.success, 'return_msg': return_msg, 'debug_data': debug_data };
+  }
+
+  bi7GetSkillMetaDataOnce(skill_uid) {
+    var debug_data = [];
+    var call_result = {};
+    var return_msg = "bi7_watchdog_firebase:bi7GetSkillMetaDataOnce ";
+    var task_id = "bi7_watchdog_firebase:bi7GetSkillMetaDataOnce";
+    var CI = this;
+
+    ////// input validation 
+
+    // TODO!~ mu- confirm format and create validation function in base_i1
+    // call_result = bi1_data_validation.is_skill_uid(skill_uid);
+    // debug_data.push(call_result);
+    // if (call_result[CR.success] !== RC.success) {
+    //   return_msg += "input validation failed";
+    //   base_i3_log(G_username, G_ip, G_page_id, task_id, RC.input_validation_failed, return_msg, debug_data);
+    //   return { 'success': call_result[CR.success], 'return_msg': return_msg, 'debug_data': debug_data };
+    // }
+    //////</end> input validation 
+
+    var listener_location = `skills_meta_data/${skill_uid}`;
+    var location_ref = CI.IV_firebase_db_object.ref(listener_location);
+
+    ///// removing invalid firebase listener key
+    call_result = CI.validateFirebaseListener(location_ref);
+    debug_data.push(call_result)
+    if (call_result[CR.success] !== RC.success) {
+      return_msg += "failed to create listener for " + listener_location;
+      base_i3_log(G_username, G_ip, G_page_id, task_id, RC.firebase_failure, return_msg, debug_data);
+      return { 'success': RC.firebase_failure, 'return_msg': return_msg, 'debug_data': debug_data };
+    }
+    ///// </end> removing invalid firebase listener key
+
+    location_ref.on("value",
+      function (a_data) { CI.bi7SkillMetaDataOnceCallback(skill_uid, a_data) }.bind(CI),
+      function (errorObject) {
+        return_msg += "firebase read failed with error data:" + errorObject;
+        base_i3_log(G_username, G_ip, G_page_id, task_id, RC.firebase_failure, return_msg, debug_data);
+      }.bind(CI)
+    );
+  }
+
+  bi7SkillMetaDataOnceCallback(skill_uid, data) {
+    var debug_data = [];
+    var call_result = {};
+    var return_msg = "bi7_watchdog_firebase:bi7SkillMetaDataOnceCallback ";
+    var task_id = "bi7_watchdog_firebase:bi7SkillMetaDataOnceCallback";
+    var CI = this;
+
+    ////// input validation 
+
+    // TODO!~ mu- confirm format and create validation function in base_i1
+    // call_result = bi1_data_validation.is_skill_uid(skill_uid);
+    // debug_data.push(call_result);
+    // if (call_result[CR.success] !== RC.success) {
+    //   return_msg += "input validation failed";
+    //   base_i3_log(G_username, G_ip, G_page_id, task_id, RC.input_validation_failed, return_msg, debug_data);
+    //   return { 'success': call_result[CR.success], 'return_msg': return_msg, 'debug_data': debug_data };
+    // }
+
+    if (data === null) {
+      return_msg += "data argument is null";
+      base_i3_log(G_username, G_ip, G_page_id, task_id, RC.input_validation_failed, return_msg, debug_data);
+      return { 'success': RC.input_validation_failed, 'return_msg': return_msg, 'debug_data': debug_data };
+    }
+    //////</end> input validation 
+
+    var firebase_data = data.val();
+
+
+    if (skill_uid in CI.IV_skills_meta_data === false) {
+      Vue.set(CI.IV_skills_meta_data, skill_uid, {});
+    }
+
+    if ('name' in firebase_data === true && typeof (firebase_data['name']) === "string") {
+      Vue.set(CI.IV_skills_meta_data[skill_uid], 'name', firebase_data['name']);
+    }
+
+    if ('description' in firebase_data === true && typeof (firebase_data['description']) === "string") {
+      Vue.set(CI.IV_skills_meta_data[skill_uid], 'description', firebase_data['description']);
+    }
+
+    if ('skill_type' in firebase_data === true && typeof (firebase_data['skill_type']) === "string") {
+      Vue.set(CI.IV_skills_meta_data[skill_uid], 'skill_type', firebase_data['skill_type']);
+    }
+
+    return { 'success': RC.success, 'return_msg': return_msg, 'debug_data': debug_data };
+  }
+
   bi7UnsubscribeAllListeners() {
     var debug_data = [];
     var call_result = {};
@@ -231,6 +592,7 @@ class bi7_watchdog_firebase {
     var task_id = "bi7_watchdog_firebase:bi7UnsubscribeAllListeners";
     var CI = this;
 
+    /// TODO- mu update listeners array.
     var listener_dicts = []
     var failure_flag = false;
     for (var listener_list_index in listener_dicts) {
@@ -326,6 +688,39 @@ class bi7_watchdog_firebase {
     }
     
     return (extract.length === 0) ? NaN : parseFloat(extract)
+  }
+
+  validateFirebaseListener(listener_object) {
+    var debug_data = [];
+    var call_result = {};
+    var return_msg = "bi7_watchdog_firebase:validateFirebaseListener ";
+    var task_id = "bi7_watchdog_firebase:validateFirebaseListener";
+    var CI = this;
+
+    try {
+      call_result = bi1_data_validation.is_string(listener_object['database']['app']['options_']['apiKey']);
+      debug_data.push(call_result);
+      call_result = bi1_data_validation.is_string(listener_object['key']);
+      debug_data.push(call_result);
+    } catch (err) {
+      return_msg += "object is not a valid firebase listener, errors:" + JSON.stringify(err.message);
+      base_i3_log(G_username, G_ip, G_page_id, task_id, RC.input_validation_failed, return_msg, debug_data);
+      return { success: RC.input_validation_failed, return_msg: return_msg, debug_data: debug_data };
+    }
+
+    var validation_failed = false;
+    for (var index in debug_data) {
+      if (debug_data[index][CR.success] !== RC.success) {
+        validation_failed = true;
+      }
+    }
+    if(validation_failed === true) {
+      return_msg += "object is not a valid firebase listener";
+      base_i3_log(G_username, G_ip, G_page_id, task_id, RC.input_validation_failed, return_msg, debug_data);
+      return { 'success': RC.input_validation_failed, 'return_msg': return_msg, 'debug_data': debug_data };
+    }
+
+    return { 'success': RC.success, 'return_msg': return_msg, 'debug_data': debug_data };
   }
 
 }

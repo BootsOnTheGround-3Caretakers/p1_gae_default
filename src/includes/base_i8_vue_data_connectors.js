@@ -7,18 +7,21 @@ import 'vue'
 class bi8_vue_data_connectors {
 
   static bi8SetVueUserInfoSuccess() {
-    window.vue_instance.$root.$data.userInfo.firstName = window.G_watchdog_data.IV_user_info['first_name']
-    window.vue_instance.$root.$data.userInfo.lastName = window.G_watchdog_data.IV_user_info['last_name']
-    window.vue_instance.$root.$data.userInfo.contactEmail =  window.G_watchdog_data.IV_user_info['contact_email']
+    window.G_watchdog_data.bi7initNeedsLastUpdatedGlobalListener();
+    window.G_watchdog_data.bi7initSkillsLastUpdatedGlobalListener();
+
+    // window.vue_instance.$root.$data.userInfo.firstName = window.G_watchdog_data.IV_user_info['first_name']
+    // window.vue_instance.$root.$data.userInfo.lastName = window.G_watchdog_data.IV_user_info['last_name']
+    // window.vue_instance.$root.$data.userInfo.contactEmail =  window.G_watchdog_data.IV_user_info['contact_email']
     
-    if (window.vue_instance.$root.$data.userInfo.uid !== window.G_watchdog_data.IV_user_info['uid']) {
-      window.vue_instance.$root.$data.userInfo.uid = window.G_watchdog_data.IV_user_info['uid']
-      window.G_watchdog_data.InitOrgListeners()
-      window.G_watchdog_data.bi7initRulesListener()
-      window.G_watchdog_data.bi7initNotificationRuleJoinsListener()
-      window.G_watchdog_data.bi7InitAccountNotificationsListener()
-      window.vue_instance.$root.$data.watchdog.watchdogDbConnected = true;
-    }
+    // if (window.vue_instance.$root.$data.userInfo.uid !== window.G_watchdog_data.IV_user_info['uid']) {
+    //   window.vue_instance.$root.$data.userInfo.uid = window.G_watchdog_data.IV_user_info['uid']
+    //   window.G_watchdog_data.InitOrgListeners()
+    //   window.G_watchdog_data.bi7initRulesListener()
+    //   window.G_watchdog_data.bi7initNotificationRuleJoinsListener()
+    //   window.G_watchdog_data.bi7InitAccountNotificationsListener()
+    //   window.vue_instance.$root.$data.watchdog.watchdogDbConnected = true;
+    // }
   }
 
   static bi8SignInCallback() {

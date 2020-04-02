@@ -25,8 +25,8 @@ class bi8_vue_data_connectors {
     if (window.G_firebase_auth.IV_token_received === false || typeof G_firebase_auth.IV_uid !== 'string' ||  G_firebase_auth.IV_uid.length < 5) {
       setTimeout(bi8_vue_data_connectors.bi8SignInCallback,300);
     }
-    window.vue_instance.$root.$data.userInfo.isGuest = window.G_firebase_auth.IV_is_guest;
-    window.vue_instance.$root.$data.userInfo.authenticated = window.G_firebase_auth.IV_token_received;
+    // window.vue_instance.$root.$data.userInfo.isGuest = window.G_firebase_auth.IV_is_guest;
+    // window.vue_instance.$root.$data.userInfo.authenticated = window.G_firebase_auth.IV_token_received;
 
     window.G_watchdog_data.setFirebaseParams(
       window.firebase.database(),

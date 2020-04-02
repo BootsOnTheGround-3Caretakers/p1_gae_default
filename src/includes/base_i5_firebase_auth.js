@@ -340,14 +340,17 @@ class bi5_firebase {
           CI.IV_last_name = " ";
         }
       }
-
-      CI.callCallBackFunction(CI.IV_login_page_callbacks['signed_in']);
-      return;
+        
+      if (CI.IV_token_verification_loop_active === true) {
+        CI.bi5forceTokenRefresh()
+      } else {
+        CI.bi5forceTokenRefresh(true /*this param starts the verifaciton loop every X minutes*/)
+      }
     }
     //// user is signed in or an anonymous user
 
     //if another tab signed the user out this will catch it
-    if (user_auth_flag === false && CI.IV_signout_requested_flag === false && CI.IV_token_update_count !== 0) {
+    if (user_auth_flag === false && CI.IV_signout_requested_flag === false && CI.IV_token_update_count > 1) {
       CI.callCallBackFunction(CI.IV_signed_out_global_callback);
     }
   }
@@ -390,75 +393,6 @@ class bi5_firebase {
     );
     return true;
   }
-
-  bi5AttemptPasswordlessSignIn(email_addresss = null) {
-    var call_result = {};
-    var debug_data = [];
-    var return_msg = "bi5_firebase:bi5AttemptPasswordlessSignIn";
-    var task_id = "bi5_firebase:bi5AttemptPasswordlessSignIn";
-    var CI = this;
-
-    ////// input validation
-    call_result = bi1_data_validation.is_email_address(email_addresss);
-    debug_data.push(call_result);
-    if (call_result["success"] !== RC.success) {
-      CI.callCallBackFunction(CI.IV_login_page_callbacks['email_invalid'])
-      return;
-    } else {
-      CI.callCallBackFunction(CI.IV_login_page_callbacks['email_valid'])
-    }
-    //////</end> input validation
-
-    var actionCodeSettings = {
-      url: window.location.href,
-      //per documentaiotn this must be true.
-      handleCodeInApp: true
-    };
-    localStorage.removeItem('firebase_token');
-    localStorage.removeItem('firebase_token_expiration');
-    CI.IV_token_update_count = 0;
-    CI.IV_guest_login_requested = false;
-    CI.IV_token_verification_loop_active = false;
-    firebase.auth().sendSignInLinkToEmail(email_addresss, actionCodeSettings).then(
-      function () {
-        // Save the email locally so you don't need to ask the user for it again
-        window.localStorage.setItem("emailForSignIn", email_addresss);
-        CI.callCallBackFunction(CI.IV_login_page_callbacks['passwordless_email_sent']);
-      }.bind(CI))
-      .catch(function (error) {
-        CI.callCallBackFunction(CI.IV_login_page_callbacks['passwordless_email_failed'], error);
-      }.bind(CI));
-  }
-
-  bi5GuestSignIn() {
-    var call_result = {};
-    var debug_data = [];
-    var return_msg = "bi5_firebase:bi5GuestSignIn";
-    var task_id = "bi5_firebase:bi5GuestSignIn";
-    var CI = this;
-    CI.IV_token_update_count = 0;
-    CI.IV_guest_login_requested = true;
-    //if they are already signed in as a guest manually run the auth changed state
-    var user = firebase.auth().currentUser;
-    if ( user !== null && firebase.auth().currentUser.isAnonymous){
-      CI.callCallBackFunction(CI.IV_login_page_callbacks['signed_in']);
-      return;
-    }
-    
-    localStorage.removeItem('firebase_token');
-    localStorage.removeItem('firebase_token_expiration');
-    CI.IV_token_verification_loop_active = false;
-    firebase.auth().signInAnonymously().then(
-      function (result) {
-        return; //onauth handler will handle the success
-      })
-      .catch(function (error) {
-        CI.callCallBackFunction(CI.IV_login_page_callbacks['sign_in_failed'], error);
-        return_msg += "guest sign in failed with error:" + JSON.stringify(error);
-        base_i3_log(G_username, G_ip, G_page_id, task_id, RC.input_validation_failed, return_msg, debug_data);
-        return;
-      });
-    }
 
   bi5CreateUser(email = null, password = null) {
     var call_result = {};
@@ -638,45 +572,65 @@ class bi5_firebase {
       CI.callCallBackFunction(CI.IV_login_page_callbacks['signing_in'])
       CI.callCallBackFunction(CI.IV_site_page_callbacks['signing_in'])
     }
-    ajax({
-      url: window.G_ajax_test_domain + "/json-requests/p2s7t1-oauth2-verify",
-      method: "POST",
-      dataType: "text",
-      data: {
-        p2s7_token: CI.IV_id_token,
-        p2s7_firebase_email: CI.IV_email_address,
-      },
 
-      success: function (result) {
-        CI = this;
-        CI.IV_token_verified = true;
-        localStorage.setItem('firebase_token',JSON.stringify(CI.IV_id_token));
-        var date_object = new Date();
-        localStorage.setItem('firebase_token_expiration',JSON.stringify((date_object.getTime() /1000) + CI.CV_token_refresh_time ));
-        CI.IV_next_token_refresh = (date_object.getTime() /1000) + CI.CV_token_refresh_time;
-        if (CI.IV_token_update_count === 0) {
-          CI.first_time_verification_run();
-        }
+    CI = this;
+    CI.IV_token_verified = true;
+    localStorage.setItem('firebase_token',JSON.stringify(CI.IV_id_token));
+    var date_object = new Date();
+    localStorage.setItem('firebase_token_expiration',JSON.stringify((date_object.getTime() /1000) + CI.CV_token_refresh_time ));
+    CI.IV_next_token_refresh = (date_object.getTime() /1000) + CI.CV_token_refresh_time;
+    if (CI.IV_token_update_count === 0) {
+      CI.first_time_verification_run();
+    }
 
-        CI.IV_token_update_count += 1;
-        CI.callCallBackFunction(CI.IV_token_updated_global_callback);
-        CI.callCallBackFunction(callback_function);
+    CI.IV_token_update_count += 1;
+    CI.callCallBackFunction(CI.IV_token_updated_global_callback);
+    CI.callCallBackFunction(callback_function);
 
-        if(start_verification_loop === true) {
-          setTimeout(function () { CI.bi5forceTokenRefresh(start_verification_loop); }.bind(CI),2000);
-          CI.IV_token_verification_loop_active = true;
-        }
-      }.bind(CI),
-      error: function (result) {
-        return_msg += "could not verify token." + JSON.stringify(result);
-        base_i3_log(G_username, G_ip, G_page_id, task_id, RC.firebase_failure, return_msg, debug_data);
-        CI.IV_token_verified = false;
-        setTimeout(function () { CI.bi5forceTokenRefresh(start_verification_loop); }.bind(CI), 2000);
-        CI.IV_next_token_refresh = 0;
-        localStorage.removeItem('firebase_token');
-        localStorage.removeItem('firebase_token_expiration');
-      }.bind(CI),
-    });
+    if(start_verification_loop === true) {
+      setTimeout(function () { CI.bi5forceTokenRefresh(start_verification_loop); }.bind(CI),2000);
+      CI.IV_token_verification_loop_active = true;
+    }
+    
+    // ajax({
+    //   url: window.G_ajax_test_domain + "/json-requests/p2s7t1-oauth2-verify",
+    //   method: "POST",
+    //   dataType: "text",
+    //   data: {
+    //     p2s7_token: CI.IV_id_token,
+    //     p2s7_firebase_email: CI.IV_email_address,
+    //   },
+
+    //   success: function (result) {
+    //     CI = this;
+    //     CI.IV_token_verified = true;
+    //     localStorage.setItem('firebase_token',JSON.stringify(CI.IV_id_token));
+    //     var date_object = new Date();
+    //     localStorage.setItem('firebase_token_expiration',JSON.stringify((date_object.getTime() /1000) + CI.CV_token_refresh_time ));
+    //     CI.IV_next_token_refresh = (date_object.getTime() /1000) + CI.CV_token_refresh_time;
+    //     if (CI.IV_token_update_count === 0) {
+    //       CI.first_time_verification_run();
+    //     }
+
+    //     CI.IV_token_update_count += 1;
+    //     CI.callCallBackFunction(CI.IV_token_updated_global_callback);
+    //     CI.callCallBackFunction(callback_function);
+
+    //     if(start_verification_loop === true) {
+    //       setTimeout(function () { CI.bi5forceTokenRefresh(start_verification_loop); }.bind(CI),2000);
+    //       CI.IV_token_verification_loop_active = true;
+    //     }
+    //   }.bind(CI),
+    //   error: function (result) {
+    //     return_msg += "could not verify token." + JSON.stringify(result);
+    //     base_i3_log(G_username, G_ip, G_page_id, task_id, RC.firebase_failure, return_msg, debug_data);
+    //     CI.IV_token_verified = false;
+    //     setTimeout(function () { CI.bi5forceTokenRefresh(start_verification_loop); }.bind(CI), 2000);
+    //     CI.IV_next_token_refresh = 0;
+    //     localStorage.removeItem('firebase_token');
+    //     localStorage.removeItem('firebase_token_expiration');
+    //   }.bind(CI),
+    // });
   }
 }
 

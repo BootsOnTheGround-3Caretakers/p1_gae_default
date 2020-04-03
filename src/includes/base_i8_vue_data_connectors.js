@@ -7,9 +7,6 @@ import 'vue'
 class bi8_vue_data_connectors {
 
   static bi8SetVueUserInfoSuccess() {
-    window.G_watchdog_data.bi7initNeedsLastUpdatedGlobalListener();
-    window.G_watchdog_data.bi7initSkillsLastUpdatedGlobalListener();
-
     // window.vue_instance.$root.$data.userInfo.firstName = window.G_watchdog_data.IV_user_info['first_name']
     // window.vue_instance.$root.$data.userInfo.lastName = window.G_watchdog_data.IV_user_info['last_name']
     // window.vue_instance.$root.$data.userInfo.contactEmail =  window.G_watchdog_data.IV_user_info['contact_email']

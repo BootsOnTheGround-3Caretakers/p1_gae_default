@@ -15,11 +15,14 @@
           <li class="nav-item">
             <router-link to="/" class="nav-link">Home</router-link>
           </li>
-          <li class="nav-item">
+          <li v-if="C_userNotLoggedIn" class="nav-item">
             <router-link to="/login" class="nav-link">Sign In</router-link>
           </li>
-          <li class="nav-item">
+          <li v-if="C_userNotLoggedIn" class="nav-item">
             <router-link to="/register" class="nav-link">Register</router-link>
+          </li> 
+          <li v-if="!C_userNotLoggedIn" class="nav-item">
+            <router-link to="#" class="nav-link">My Clusterd</router-link>
           </li> 
            <!-- Dropdown -->
           <li class="nav-item dropdown">
@@ -42,9 +45,19 @@
 
   export default {
     name: "Header",
+    data() {
+      return {
+        DV_userInfo: this.$root.$data.userInfo
+      }
+    },
     methods: {
       signOut() {
         window.G_firebase_auth.bi5SignOut();
+      }
+    },
+    computed: {
+      C_userNotLoggedIn() {
+        return this.DV_userInfo.uid === "" || this.DV_userInfo.uid === 0;
       }
     }
   }

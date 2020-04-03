@@ -9,15 +9,25 @@ import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.min.css'
 
 Vue.config.productionTip = false
-let options = {maxNotifications:1 ,position: 'top-right'}
+let options = {maxNotifications: 1 ,position: 'top-right'}
 Vue.use(VueAWN, options)
 
-new Vue({
+
+window.vue_instance = new Vue({
   el: '#app',
-  router,
   components: { App },
-  template: '<App/>'
-})
+  template: '<App/>',
+  data: {
+    userInfo: {
+      firstName: 'User',
+      lastName: '',
+      contactEmail: '',
+      uid: 0,
+      authenticated: false,
+    }
+  },
+  router
+});
 
 window.G_firebase_auth.bi5InitFirebase()
 console.log('main.js ran')

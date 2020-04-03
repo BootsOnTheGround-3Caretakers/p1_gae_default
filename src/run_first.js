@@ -1,7 +1,7 @@
 
 /* eslint-disable */
 import Bi5FirebaseAuth from './includes/base_i5_firebase_auth'
-import Bi7WatchdogData from './includes/base_i7_watchdog_data'
+import Bi7WatchdogData from './includes/base_i7_firebase_data'
 import Bi8VueDataConnector from './includes/base_i8_vue_data_connectors'
 
 // produtction versus dev stuff
@@ -24,7 +24,7 @@ window.G_firebase_auth.bi5SetTokenUpdatedCallback(Bi8VueDataConnector.bi8Firebas
 window.G_username = ''
 window.G_ip = ''
 window.G_page_id = ''
-window.G_watchdog_data = new Bi7WatchdogData()
-window.G_watchdog_data.bi7setDataChangedCallback('IV_user_info', Bi8VueDataConnector.bi8SetVueUserInfoSuccess)
+window.G_firebase_data = new Bi7WatchdogData()
+window.G_firebase_data.bi7setDataChangedCallback('IV_user_info', Bi8VueDataConnector.bi8SetVueUserInfoSuccess)
 
 console.log('run_first ran')

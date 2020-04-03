@@ -28,7 +28,7 @@ class bi7_watchdog_firebase {
     CI.IV_listener_user_info = {};
     CI.IV_user_info = { 'uid': 0, 'contact_email': '', 'first_name': '', 'last_name': '','web_uid' :'' };
 
-    // Callbacks Related IVs
+    // Global Callbacks Related IVs
     CI.IV_data_change_callbacks = {'IV_user_info': null};
     CI.IV_success_global_callbacks = {};
     CI.IV_failure_global_callbacks = {};
@@ -46,7 +46,7 @@ class bi7_watchdog_firebase {
     CI.IV_skills_meta_data = {};
     CI.IV_hashtags_meta_data = {};
 
-    // Global function calls needs to call on page load
+    // Function calls needs to call on page load
     CI.bi7initNeedsLastUpdatedGlobalListener();
     CI.bi7initSkillsLastUpdatedGlobalListener();
     CI.bi7initHashtagsLastUpdatedGlobalListener();

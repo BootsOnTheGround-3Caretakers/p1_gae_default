@@ -7,16 +7,16 @@ import 'vue'
 class bi8_vue_data_connectors {
 
   static bi8SetVueUserInfoSuccess() {
-    // window.vue_instance.$root.$data.userInfo.firstName = window.G_watchdog_data.IV_user_info['first_name']
-    // window.vue_instance.$root.$data.userInfo.lastName = window.G_watchdog_data.IV_user_info['last_name']
-    // window.vue_instance.$root.$data.userInfo.contactEmail =  window.G_watchdog_data.IV_user_info['contact_email']
+    // window.vue_instance.$root.$data.userInfo.firstName = window.G_firebase_data.IV_user_info['first_name']
+    // window.vue_instance.$root.$data.userInfo.lastName = window.G_firebase_data.IV_user_info['last_name']
+    // window.vue_instance.$root.$data.userInfo.contactEmail =  window.G_firebase_data.IV_user_info['contact_email']
     
-    // if (window.vue_instance.$root.$data.userInfo.uid !== window.G_watchdog_data.IV_user_info['uid']) {
-    //   window.vue_instance.$root.$data.userInfo.uid = window.G_watchdog_data.IV_user_info['uid']
-    //   window.G_watchdog_data.InitOrgListeners()
-    //   window.G_watchdog_data.bi7initRulesListener()
-    //   window.G_watchdog_data.bi7initNotificationRuleJoinsListener()
-    //   window.G_watchdog_data.bi7InitAccountNotificationsListener()
+    // if (window.vue_instance.$root.$data.userInfo.uid !== window.G_firebase_data.IV_user_info['uid']) {
+    //   window.vue_instance.$root.$data.userInfo.uid = window.G_firebase_data.IV_user_info['uid']
+    //   window.G_firebase_data.InitOrgListeners()
+    //   window.G_firebase_data.bi7initRulesListener()
+    //   window.G_firebase_data.bi7initNotificationRuleJoinsListener()
+    //   window.G_firebase_data.bi7InitAccountNotificationsListener()
     //   window.vue_instance.$root.$data.watchdog.watchdogDbConnected = true;
     // }
   }
@@ -28,7 +28,7 @@ class bi8_vue_data_connectors {
     // window.vue_instance.$root.$data.userInfo.isGuest = window.G_firebase_auth.IV_is_guest;
     // window.vue_instance.$root.$data.userInfo.authenticated = window.G_firebase_auth.IV_token_received;
 
-    window.G_watchdog_data.setFirebaseParams(
+    window.G_firebase_data.setFirebaseParams(
       window.firebase.database(),
       window.G_firebase_auth.bi5TokenProperty,
       window.G_firebase_auth.bi5FirebaseUidProperty,
@@ -36,7 +36,7 @@ class bi8_vue_data_connectors {
       window.G_firebase_auth.bi5FirebaseGuestFlagProperty
     );
 
-    window.G_watchdog_data.InitUserInfoListener();
+    window.G_firebase_data.InitUserInfoListener();
   }
 
   static bi8SignOutCallback() {
@@ -44,7 +44,7 @@ class bi8_vue_data_connectors {
   }
 
   static bi8FirebaseTokenUpdatedCallback() {
-    window.G_watchdog_data.bi7SetFirebaseToken(G_firebase_auth.bi5TokenProperty);
+    window.G_firebase_data.bi7SetFirebaseToken(G_firebase_auth.bi5TokenProperty);
   }
 }
 

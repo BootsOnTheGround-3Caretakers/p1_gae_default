@@ -330,14 +330,14 @@ class bi7_watchdog_firebase {
         Vue.set(CI.IV_needs_last_updated, need_uid, {});
       }
 
-      if ('last_updated' in CI.IV_needs_last_updated[need_uid] === false) {
+      if ('last_updated' in CI.IV_needs_last_updated[need_uid] === false || 
+          CI.IV_needs_last_updated[need_uid]['last_updated'] === null ||
+          CI.IV_needs_last_updated[need_uid]['last_updated'] === undefined) {
         Vue.set(CI.IV_needs_last_updated[need_uid], 'last_updated', firebase_data[need_uid]['last_updated']);
         CI.bi7GetNeedMetaDataOnce(need_uid);
-      } else if ('last_updated' in CI.IV_needs_last_updated[need_uid] === true) {
-        if (CI.IV_needs_last_updated[need_uid]['last_updated'] < firebase_data[need_uid]['last_updated']) {
-          Vue.set(CI.IV_needs_last_updated[need_uid], 'last_updated', firebase_data[need_uid]['last_updated']);
-          CI.bi7GetNeedMetaDataOnce(need_uid);
-        }
+      } else if (CI.IV_needs_last_updated[need_uid]['last_updated'] < firebase_data[need_uid]['last_updated']) {
+        Vue.set(CI.IV_needs_last_updated[need_uid], 'last_updated', firebase_data[need_uid]['last_updated']);
+        CI.bi7GetNeedMetaDataOnce(need_uid);
       }
     }
 
@@ -376,7 +376,7 @@ class bi7_watchdog_firebase {
     }
     ///// </end> removing invalid firebase listener key
 
-    location_ref.on("value",
+    location_ref.once("value",
       function (a_data) { CI.bi7NeedMetaDataOnceCallback(need_uid, a_data) }.bind(CI),
       function (errorObject) {
         return_msg += "firebase read failed with error data:" + errorObject;
@@ -491,14 +491,14 @@ class bi7_watchdog_firebase {
         Vue.set(CI.IV_skills_last_updated, skill_uid, {});
       }
 
-      if ('last_updated' in CI.IV_skills_last_updated[skill_uid] === false) {
+      if ('last_updated' in CI.IV_skills_last_updated[skill_uid] === false ||
+          CI.IV_skills_last_updated[skill_uid]['last_updated'] === null ||
+          CI.IV_skills_last_updated[skill_uid]['last_updated'] === undefined) {
         Vue.set(CI.IV_skills_last_updated[skill_uid], 'last_updated', firebase_data[skill_uid]['last_updated']);
         CI.bi7GetSkillMetaDataOnce(skill_uid);
-      } else if ('last_updated' in CI.IV_skills_last_updated[skill_uid] === true) {
-        if (CI.IV_skills_last_updated[skill_uid]['last_updated'] < firebase_data[skill_uid]['last_updated']) {
-          Vue.set(CI.IV_skills_last_updated[skill_uid], 'last_updated', firebase_data[skill_uid]['last_updated']);
-          CI.bi7GetSkillMetaDataOnce(skill_uid);
-        }
+      } else if (CI.IV_skills_last_updated[skill_uid]['last_updated'] < firebase_data[skill_uid]['last_updated']) {
+        Vue.set(CI.IV_skills_last_updated[skill_uid], 'last_updated', firebase_data[skill_uid]['last_updated']);
+        CI.bi7GetSkillMetaDataOnce(skill_uid);
       }
     }
 
@@ -537,7 +537,7 @@ class bi7_watchdog_firebase {
     }
     ///// </end> removing invalid firebase listener key
 
-    location_ref.on("value",
+    location_ref.once("value",
       function (a_data) { CI.bi7SkillMetaDataOnceCallback(skill_uid, a_data) }.bind(CI),
       function (errorObject) {
         return_msg += "firebase read failed with error data:" + errorObject;
@@ -657,14 +657,14 @@ class bi7_watchdog_firebase {
         Vue.set(CI.IV_hashtags_last_updated, hashtag_uid, {});
       }
 
-      if ('last_updated' in CI.IV_hashtags_last_updated[hashtag_uid] === false) {
+      if ('last_updated' in CI.IV_hashtags_last_updated[hashtag_uid] === false ||
+          CI.IV_hashtags_last_updated[hashtag_uid]['last_updated'] === null ||
+          CI.IV_hashtags_last_updated[hashtag_uid]['last_updated'] === undefined) {
         Vue.set(CI.IV_hashtags_last_updated[hashtag_uid], 'last_updated', firebase_data[hashtag_uid]);
         CI.bi7GetHashTagMetaDataOnce(hashtag_uid);
-      } else if ('last_updated' in CI.IV_hashtags_last_updated[hashtag_uid] === true) {
-        if (CI.IV_hashtags_last_updated[hashtag_uid]['last_updated'] < firebase_data[hashtag_uid]) {
-          Vue.set(CI.IV_hashtags_last_updated[hashtag_uid], 'last_updated', firebase_data[hashtag_uid]);
-          CI.bi7GetHashTagMetaDataOnce(hashtag_uid);
-        }
+      } else if (CI.IV_hashtags_last_updated[hashtag_uid]['last_updated'] < firebase_data[hashtag_uid]) {
+        Vue.set(CI.IV_hashtags_last_updated[hashtag_uid], 'last_updated', firebase_data[hashtag_uid]);
+        CI.bi7GetHashTagMetaDataOnce(hashtag_uid);
       }
     }
 
@@ -703,7 +703,7 @@ class bi7_watchdog_firebase {
     }
     ///// </end> removing invalid firebase listener key
 
-    location_ref.on("value",
+    location_ref.once("value",
       function (a_data) { CI.bi7HashtagMetaDataOnceCallback(hashtag_uid, a_data) }.bind(CI),
       function (errorObject) {
         return_msg += "firebase read failed with error data:" + errorObject;

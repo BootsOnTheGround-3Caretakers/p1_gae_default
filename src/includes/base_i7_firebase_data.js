@@ -267,7 +267,8 @@ class bi7_watchdog_firebase {
     window.vue_instance.$root.$data.userInfo['lastName'] = window.G_firebase_auth.IV_last_name;
     window.vue_instance.$root.$data.userInfo['contactEmail'] = window.G_firebase_auth.IV_email_address;
     window.vue_instance.$root.$data.userInfo['uid'] = window.G_firebase_auth.IV_uid;
-    window.vue_instance.$root.$data.userInfo['authenticated'] = true;
+    window.vue_instance.$root.$data.userInfo['authenticated'] = window.G_firebase_auth.IV_token_received;
+    window.vue_instance.$root.$data.userInfo['isGuest'] = window.G_firebase_auth.IV_is_guest
 
     CI.callCallBackFunction(CI.IV_data_change_callbacks['IV_user_info']);
 

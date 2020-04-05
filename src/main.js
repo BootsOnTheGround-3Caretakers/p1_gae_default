@@ -24,6 +24,7 @@ window.vue_instance = new Vue({
       contactEmail: '',
       uid: 0,
       authenticated: false,
+      isGuest: false
     },
     firebaseData: {
       needsLastUpdated: {},

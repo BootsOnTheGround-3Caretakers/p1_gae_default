@@ -54,6 +54,7 @@
 
 <script>
 import firebase from "firebase";
+import AWN from "awesome-notifications";
 
 export default {
   data() {
@@ -92,22 +93,16 @@ export default {
       this.$router.replace("/");
     },
     signInFailedCallback: function(error) {
-      // TODO - install npm module for awsome-notification and enable this code
-
-      // if (error[0].code === 'auth/user-not-found'){
-      //   let notification = 'User does not exist. Please create an account.'
-      //   this.$store.commit('updateNotifications', notification)
-      //   this.loginType = 'createUser'
-      //   this.password = ''
-      //   this.$awn.info(notification)
-      // }
-      // if (error[0].code === 'auth/wrong-password'){
-      //   let notification = 'Incorrect password. Please try again.'
-      //   this.password = ''
-      //   this.$awn.info(notification)
-      // }
-        
-      alert("sign in failed with error:" + JSON.stringify(error))
+      if (error[0].code === 'auth/user-not-found') {
+        let notification = 'User does not exist. Please create an account.'
+        this.password = ''
+        this.$awn.warning(notification)
+      }
+      if (error[0].code === 'auth/wrong-password') {
+        let notification = 'Incorrect password. Please try again.'
+        this.password = ''
+        this.$awn.alert(notification)
+      }
     },
     passwordResetSent: function() {
       // TODO - install npm module for awsome-notification and enable this code

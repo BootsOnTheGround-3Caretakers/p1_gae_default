@@ -211,6 +211,37 @@ class bi5_firebase {
     return { success: RC.success, return_msg: return_msg, debug_data: debug_data };
   }
 
+  bi5GuestSignIn() {
+    var call_result = {};
+    var debug_data = [];
+    var return_msg = "bi5_firebase:bi5GuestSignIn";
+    var task_id = "bi5_firebase:bi5GuestSignIn";
+    var CI = this;
+    CI.IV_token_update_count = 0;
+    CI.IV_guest_login_requested = true;
+
+    //if they are already signed in as a guest manually run the auth changed state
+    var user = firebase.auth().currentUser;
+    if ( user !== null && firebase.auth().currentUser.isAnonymous){
+      CI.callCallBackFunction(CI.IV_login_page_callbacks['signed_in']);
+      return;
+    }
+    
+    localStorage.removeItem('firebase_token');
+    localStorage.removeItem('firebase_token_expiration');
+    CI.IV_token_verification_loop_active = false;
+    firebase.auth().signInAnonymously().then(
+      function (result) {
+        return; //onauth handler will handle the success
+      })
+      .catch(function (error) {
+        CI.callCallBackFunction(CI.IV_login_page_callbacks['sign_in_failed'], error);
+        return_msg += "guest sign in failed with error:" + JSON.stringify(error);
+        base_i3_log(G_username, G_ip, G_page_id, task_id, RC.input_validation_failed, return_msg, debug_data);
+        return;
+      });
+  }
+
   setSignedInGlobalCallback(callback = null) {
     var debug_data = [];
     var call_result = {};
@@ -307,38 +338,62 @@ class bi5_firebase {
 
     /////</end> determine user sign in state logic
 
+    var pathname = window.location.pathname.toLowerCase();
+    ///// look for the sign in flags
+    var login_flag = false;
+
+    if (pathname.toLowerCase().indexOf('/login') === 0) {
+      login_flag = true;
+    }
+
+    ///// anonymous login logic
+    if (user_auth_flag === false && user === null && login_flag === false) {
+      CI.bi5GuestSignIn()
+      return;
+    }
+
+    if (user !== null && user.isAnonymous === true && (login_flag === false || CI.IV_guest_login_requested === true)) {
+      user_auth_flag = true;
+    }
+    /////</end> anonymous login logic
+
     //// user is signed in or an anonymous user
     if (user_auth_flag === true) {
-      CI.IV_is_guest = false;
-      CI.IV_email_address = user.email;
-      CI.IV_emailVerified = user.emailVerified;
-      CI.IV_photoURL = user.photoURL;
-      // }
       CI.IV_uid = user.uid;
       CI.IV_providerData = user.providerData;
-      ////</end> set user information from firebase object
+      
+      if (user.isAnonymous === true) {
+        CI.IV_user_is_anonymous = true;
+        CI.IV_displayName = "Guest User";
+        CI.IV_email_address = "guest_user@cloud.com";
+        CI.IV_is_guest = true;
+      } else {
+        CI.IV_is_guest = false;
+        CI.IV_email_address = user.email;
+        CI.IV_emailVerified = user.emailVerified;
+        CI.IV_photoURL = user.photoURL;
+        CI.IV_displayName = user.displayName;
+      }
 
-      ////// if they are a guest, set guest name. if they are a user separate display name into first and last name
-      if (user.displayName === null) {
+      if (CI.IV_displayName === null) {
         CI.IV_first_name = "New User";
         CI.IV_last_name = " ";
         CI.IV_displayName = "New User";
       } else {
-        CI.IV_displayName = user.displayName;
         if (CI.IV_displayName.indexOf(" ") > 0) {
-          CI.IV_first_name = CI.IV_displayName.substring(
-              0,
-              CI.IV_displayName.indexOf(" ")
-          );
+          CI.IV_first_name = CI.IV_displayName.substring(0, CI.IV_displayName.indexOf(" "));
           CI.IV_last_name = CI.IV_displayName.substring(
-              CI.IV_displayName.indexOf(" ") + 1,
-              CI.IV_displayName.length
+            CI.IV_displayName.indexOf(" ") + 1,
+            CI.IV_displayName.length
           );
         } else {
           CI.IV_first_name = CI.IV_displayName;
           CI.IV_last_name = " ";
         }
       }
+      ////</end> set user information from firebase object
+
+      ////// if they are a guest, set guest name. if they are a user separate display name into first and last name
         
       if (CI.IV_token_verification_loop_active === true) {
         CI.bi5forceTokenRefresh()

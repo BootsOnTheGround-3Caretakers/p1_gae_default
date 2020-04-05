@@ -15,24 +15,24 @@
           <li class="nav-item">
             <router-link to="/" class="nav-link">Home</router-link>
           </li>
-          <li v-if="C_userNotLoggedIn" class="nav-item">
-            <router-link to="/login" class="nav-link">Sign In</router-link>
+          <li v-if="C_isGuestUser || C_notAuthenticated" class="nav-item">
+            <a @click.stop="goToLogin" href="javascript:;" class="nav-link">Sign In</a>
           </li>
-          <li v-if="C_userNotLoggedIn" class="nav-item">
-            <router-link to="/register" class="nav-link">Register</router-link>
+          <li v-if="C_isGuestUser || C_notAuthenticated" class="nav-item">
+            <a @click.stop="goToRegister" href="javascript:;" class="nav-link">Register</a>
           </li> 
-          <li v-if="!C_userNotLoggedIn" class="nav-item">
+          <li v-if="!C_isGuestUser && !C_notAuthenticated" class="nav-item">
             <router-link to="#" class="nav-link">My Clusterd</router-link>
           </li> 
            <!-- Dropdown -->
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="javascript:;" id="navbardrop" data-toggle="dropdown">
-              User
+              {{DV_userInfo.firstName}}
             </a>
             <div class="dropdown-menu">
               <a class="dropdown-item" href="javascript:;">Home</a>
               <a class="dropdown-item" href="javascript:;">My Clusters</a>
-              <a class="dropdown-item" href="javascript:;" @click.stop="signOut">Logout</a>
+              <a v-if="!C_isGuestUser && !C_notAuthenticated" class="dropdown-item" href="javascript:;" @click.stop="signOut">Logout</a>
             </div>
           </li>
         </ul>
@@ -53,11 +53,24 @@
     methods: {
       signOut() {
         window.G_firebase_auth.bi5SignOut();
+      },
+      goToLogin() {
+        localStorage.clear();
+        localStorage.removeItem('vuex');
+        location.assign(window.location.origin + '/login');
+      },
+      goToRegister() {
+        localStorage.clear();
+        localStorage.removeItem('vuex');
+        location.assign(window.location.origin + '/register');
       }
     },
     computed: {
-      C_userNotLoggedIn() {
-        return this.DV_userInfo.uid === "" || this.DV_userInfo.uid === 0;
+      C_isGuestUser() {
+        return this.DV_userInfo.isGuest === true;
+      },
+      C_notAuthenticated() {
+        return this.DV_userInfo.authenticated === false;
       }
     }
   }

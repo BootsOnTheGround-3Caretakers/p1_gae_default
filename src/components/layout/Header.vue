@@ -24,6 +24,9 @@
           <li v-if="!C_isGuestUser && !C_notAuthenticated" class="nav-item">
             <router-link to="#" class="nav-link">My Clusterd</router-link>
           </li> 
+          <li v-if="!C_isGuestUser && !C_notAuthenticated" class="nav-item">
+            <router-link to="/people" class="nav-link">Look People</router-link>
+          </li> 
            <!-- Dropdown -->
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="javascript:;" id="navbardrop" data-toggle="dropdown">

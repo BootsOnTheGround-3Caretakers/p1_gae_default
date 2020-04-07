@@ -2,7 +2,7 @@
   <nav class="navbar navbar-expand-md navbar-dark fixed-top" id="banner">
     <div class="container">
       <!-- Brand -->
-      <a class="navbar-brand" href="#"><span>Logo</span> Here</a>
+      <a class="navbar-brand" href="/"><span>3</span>Caretakers</a>
 
       <!-- Toggler/collapsibe Button -->
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">

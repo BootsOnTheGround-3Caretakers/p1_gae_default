@@ -39,6 +39,7 @@ class bi7_watchdog_firebase {
     CI.IV_listener_hashtags_last_updated_global = null;
     CI.IV_listener_needs_skills_joins_global = null;
     CI.IV_listener_skills_needs_joins_global = null;
+    CI.IV_listener_all_users_data_global = null;
 
     // DataStructures IVs
     CI.IV_needs_last_updated = {};
@@ -49,6 +50,7 @@ class bi7_watchdog_firebase {
     CI.IV_hashtags_meta_data = {};
     CI.IV_needs_skills_joins = {};
     CI.IV_skills_needs_joins = {};
+    CI.IV_users_meta_data = {};
 
     // Function calls needs to call on page load
     CI.bi7initNeedsLastUpdatedGlobalListener();
@@ -56,6 +58,7 @@ class bi7_watchdog_firebase {
     CI.bi7initHashtagsLastUpdatedGlobalListener();
     CI.bi7initNeedsSkillsJoinsGlobalListener();
     CI.bi7initSkillsNeedsJoinsGlobalListener();
+    CI.bi7initAllUsersDataListener();
   }
 
 
@@ -986,6 +989,111 @@ class bi7_watchdog_firebase {
     return { 'success': RC.success, 'return_msg': return_msg, 'debug_data': debug_data };
   }
 
+  bi7initAllUsersDataListener() {
+    var debug_data = [];
+    var call_result = {};
+    var return_msg = "bi7_watchdog_firebase:bi7initAllUsersDataListener ";
+    var task_id = "bi7_watchdog_firebase:bi7initAllUsersDataListener";
+    var CI = this;
+
+    if (CI.IV_instance_initialized !== true) {
+      setTimeout(CI.bi7initAllUsersDataListener.bind(CI),500);
+      return;
+    }
+
+    if (CI.IV_listener_all_users_data_global !== null) { return; }
+
+    var listener_location = 'users';
+    CI.IV_listener_all_users_data_global = CI.IV_firebase_db_object.ref(listener_location);
+
+    ///// removing invalid firebase listener key
+    call_result = CI.validateFirebaseListener(CI.IV_listener_all_users_data_global);
+    debug_data.push(call_result)
+    if (call_result[CR.success] !== RC.success) {
+      delete CI.IV_listener_all_users_data_global;
+      return_msg += "failed to create listener for " + listener_location;
+      base_i3_log(G_username, G_ip, G_page_id, task_id, RC.firebase_failure, return_msg, debug_data);
+      return { 'success': RC.firebase_failure, 'return_msg': return_msg, 'debug_data': debug_data };
+    }
+    ///// </end> removing invalid firebase listener key
+
+    CI.IV_listener_all_users_data_global.on("value",
+      function (a_data) { CI.bi7allUsersDataListener(a_data) }.bind(CI),
+      function (errorObject) {
+        return_msg += "firebase read failed with error data:" + errorObject;
+        base_i3_log(G_username, G_ip, G_page_id, task_id, RC.firebase_failure, return_msg, debug_data);
+      }.bind(CI)
+    );
+
+    return { 'success': RC.success, 'return_msg': return_msg, 'debug_data': debug_data };
+  }
+
+  bi7allUsersDataListener(data) {
+    var debug_data = [];
+    var call_result = {};
+    var return_msg = "bi7_watchdog_firebase:bi7allUsersDataListener ";
+    var task_id = "bi7_watchdog_firebase:bi7allUsersDataListener";
+    var CI = this;
+
+    ////// input validation
+    if (data === null) {
+      return_msg += "data argument is null";
+      base_i3_log(G_username, G_ip, G_page_id, task_id, RC.input_validation_failed, return_msg, debug_data);
+      return { 'success': RC.input_validation_failed, 'return_msg': return_msg, 'debug_data': debug_data };
+    }
+    //////</end> input validation
+
+    var firebase_data = data.val();
+
+    for (let user_uid in firebase_data) {
+      if (user_uid === "deletion_prevention_key") {continue;}
+
+      if (user_uid in CI.IV_users_meta_data === false) {
+        Vue.set(CI.IV_users_meta_data, user_uid, {})
+      }
+
+      let firebase_user_data = firebase_data[user_uid];
+
+      for (let user_data_key in firebase_user_data) {
+        if (user_data_key === "deletion_prevention_key") {continue;}
+
+        /// only update user's data if firebase last_updated is greater than stored last_updated
+        if (user_data_key === "last_updated") {
+          if (user_data_key in CI.IV_users_meta_data[user_uid] && 
+              CI.IV_users_meta_data[user_uid][user_data_key] < firebase_user_data[user_data_key]) {
+            Vue.set(CI.IV_users_meta_data[user_uid], user_data_key, firebase_user_data[user_data_key]);
+          } else {
+            continue;
+          }
+        }
+        ///</end> only update user's data if firebase last_updated is greater than stored last_updated
+
+        /// storing user's clusters data
+        if (user_data_key === "clusters") {
+          // TODO- Store user's clusters information
+          continue;
+        }
+        ///</end? storing user's clusters data
+
+        /// storing user's needers data
+        if (user_data_key === "needers") {
+          // TODO- Store user's needers information
+          continue;
+        }
+        ///</end? storing user's needers data
+
+        /// storing user's skills data
+        if (user_data_key === "skills") {
+          // TODO- Store user's skills information
+          continue;
+        }
+        ///</end? storing user's skills data
+
+        Vue.set(CI.IV_users_meta_data[user_uid], user_data_key, firebase_user_data[user_data_key])
+      }
+    }
+    return { 'success': RC.success, 'return_msg': return_msg, 'debug_data': debug_data };
+  }
 
   bi7UnsubscribeAllListeners() {
     var debug_data = [];

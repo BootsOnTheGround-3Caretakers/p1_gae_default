@@ -37,6 +37,8 @@ class bi7_watchdog_firebase {
     CI.IV_listener_needs_last_updated_global = null;
     CI.IV_listener_skills_last_updated_global = null;
     CI.IV_listener_hashtags_last_updated_global = null;
+    CI.IV_listener_needs_skills_joins_global = null;
+    CI.IV_listener_skills_needs_joins_global = null;
 
     // DataStructures IVs
     CI.IV_needs_last_updated = {};
@@ -45,11 +47,15 @@ class bi7_watchdog_firebase {
     CI.IV_needs_meta_data = {};
     CI.IV_skills_meta_data = {};
     CI.IV_hashtags_meta_data = {};
+    CI.IV_needs_skills_joins = {};
+    CI.IV_skills_needs_joins = {};
 
     // Function calls needs to call on page load
     CI.bi7initNeedsLastUpdatedGlobalListener();
     CI.bi7initSkillsLastUpdatedGlobalListener();
     CI.bi7initHashtagsLastUpdatedGlobalListener();
+    CI.bi7initNeedsSkillsJoinsGlobalListener();
+    CI.bi7initSkillsNeedsJoinsGlobalListener();
   }
 
 
@@ -762,6 +768,225 @@ class bi7_watchdog_firebase {
     return { 'success': RC.success, 'return_msg': return_msg, 'debug_data': debug_data };
   }
 
+  bi7initNeedsSkillsJoinsGlobalListener() {
+    var debug_data = [];
+    var call_result = {};
+    var return_msg = "bi7_watchdog_firebase:bi7initNeedsSkillsJoinsGlobalListener ";
+    var task_id = "bi7_watchdog_firebase:bi7initNeedsSkillsJoinsGlobalListener";
+    var CI = this;
+
+    if (CI.IV_instance_initialized !== true) {
+      setTimeout(CI.bi7initNeedsSkillsJoinsGlobalListener.bind(CI),500);
+      return;
+    }
+
+    if (CI.IV_listener_needs_skills_joins_global !== null) { return; }
+
+    var listener_location = 'needs_skills_joins';
+    CI.IV_listener_needs_skills_joins_global = CI.IV_firebase_db_object.ref(listener_location);
+
+    ///// removing invalid firebase listener key
+    call_result = CI.validateFirebaseListener(CI.IV_listener_needs_skills_joins_global);
+    debug_data.push(call_result)
+    if (call_result[CR.success] !== RC.success) {
+      delete CI.IV_listener_needs_skills_joins_global;
+      return_msg += "failed to create listener for " + listener_location;
+      base_i3_log(G_username, G_ip, G_page_id, task_id, RC.firebase_failure, return_msg, debug_data);
+      return { 'success': RC.firebase_failure, 'return_msg': return_msg, 'debug_data': debug_data };
+    }
+    ///// </end> removing invalid firebase listener key
+
+    CI.IV_listener_needs_skills_joins_global.on("value",
+      function (a_data) { CI.bi7NeedsSkillsJoinsGlobalListenerCallback(a_data) }.bind(CI),
+      function (errorObject) {
+        return_msg += "firebase read failed with error data:" + errorObject;
+        base_i3_log(G_username, G_ip, G_page_id, task_id, RC.firebase_failure, return_msg, debug_data);
+      }.bind(CI)
+    );
+
+    return { 'success': RC.success, 'return_msg': return_msg, 'debug_data': debug_data };
+  }
+
+  bi7NeedsSkillsJoinsGlobalListenerCallback(data) {
+    var debug_data = [];
+    var call_result = {};
+    var return_msg = "bi7_watchdog_firebase:bi7NeedsSkillsJoinsGlobalListenerCallback ";
+    var task_id = "bi7_watchdog_firebase:bi7NeedsSkillsJoinsGlobalListenerCallback";
+    var CI = this;
+
+    ////// input validation
+    if (data === null) {
+      return_msg += "data argument is null";
+      base_i3_log(G_username, G_ip, G_page_id, task_id, RC.input_validation_failed, return_msg, debug_data);
+      return { 'success': RC.input_validation_failed, 'return_msg': return_msg, 'debug_data': debug_data };
+    }
+    //////</end> input validation
+
+    var firebase_data = data.val();
+
+    for (let need_uid in firebase_data) {
+
+      if (need_uid === "deletion_prevention_key") {continue;}
+
+      if (need_uid in CI.IV_needs_skills_joins === false) {
+        Vue.set(CI.IV_needs_skills_joins, need_uid, {});
+      }
+
+      var need_joins_data = firebase_data[need_uid];
+
+      for (let key in need_joins_data) {
+        if (key === "deletion_prevention_key") {continue;}
+        
+        /// only update need's data if firebase last_updated is greater than stored last_updated
+        if (key === "last_updated") {
+          if (key in CI.IV_needs_skills_joins[need_uid] === true && 
+              CI.IV_needs_skills_joins[need_uid][key] < need_joins_data[key]) {
+            Vue.set(CI.IV_needs_skills_joins[need_uid], key, need_joins_data[key]);
+          } else {
+            continue;
+          }
+        }
+        ///</end> only update need's data if firebase last_updated is greater than stored last_updated
+
+        /// storing need's skills uids
+        if (key === need_uid) {
+          if ("skills" in CI.IV_needs_skills_joins[need_uid] === false) {
+            Vue.set(CI.IV_needs_skills_joins[need_uid], "skills", {});
+          }
+
+          for (let skill_uid in need_joins_data[key]) {
+            if (skill_uid === "deletion_prevention_key") {continue;}
+
+            Vue.set(CI.IV_needs_skills_joins[need_uid]['skills'], skill_uid, skill_uid);
+          }
+        }
+        /// storing need's skills uids
+      }
+
+
+    }
+
+    return { 'success': RC.success, 'return_msg': return_msg, 'debug_data': debug_data };
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  bi7initSkillsNeedsJoinsGlobalListener() {
+    var debug_data = [];
+    var call_result = {};
+    var return_msg = "bi7_watchdog_firebase:bi7initSkillsNeedsJoinsGlobalListener ";
+    var task_id = "bi7_watchdog_firebase:bi7initSkillsNeedsJoinsGlobalListener";
+    var CI = this;
+
+    if (CI.IV_instance_initialized !== true) {
+      setTimeout(CI.bi7initSkillsNeedsJoinsGlobalListener.bind(CI),500);
+      return;
+    }
+
+    if (CI.IV_listener_skills_needs_joins_global !== null) { return; }
+
+    var listener_location = 'skills_needs_joins';
+    CI.IV_listener_skills_needs_joins_global = CI.IV_firebase_db_object.ref(listener_location);
+
+    ///// removing invalid firebase listener key
+    call_result = CI.validateFirebaseListener(CI.IV_listener_skills_needs_joins_global);
+    debug_data.push(call_result)
+    if (call_result[CR.success] !== RC.success) {
+      delete CI.IV_listener_skills_needs_joins_global;
+      return_msg += "failed to create listener for " + listener_location;
+      base_i3_log(G_username, G_ip, G_page_id, task_id, RC.firebase_failure, return_msg, debug_data);
+      return { 'success': RC.firebase_failure, 'return_msg': return_msg, 'debug_data': debug_data };
+    }
+    ///// </end> removing invalid firebase listener key
+
+    CI.IV_listener_skills_needs_joins_global.on("value",
+      function (a_data) { CI.bi7SkillsNeedsJoinsGlobalListenerCallback(a_data) }.bind(CI),
+      function (errorObject) {
+        return_msg += "firebase read failed with error data:" + errorObject;
+        base_i3_log(G_username, G_ip, G_page_id, task_id, RC.firebase_failure, return_msg, debug_data);
+      }.bind(CI)
+    );
+
+    return { 'success': RC.success, 'return_msg': return_msg, 'debug_data': debug_data };
+  }
+
+  bi7SkillsNeedsJoinsGlobalListenerCallback(data) {
+    var debug_data = [];
+    var call_result = {};
+    var return_msg = "bi7_watchdog_firebase:bi7SkillsNeedsJoinsGlobalListenerCallback ";
+    var task_id = "bi7_watchdog_firebase:bi7SkillsNeedsJoinsGlobalListenerCallback";
+    var CI = this;
+
+    ////// input validation
+    if (data === null) {
+      return_msg += "data argument is null";
+      base_i3_log(G_username, G_ip, G_page_id, task_id, RC.input_validation_failed, return_msg, debug_data);
+      return { 'success': RC.input_validation_failed, 'return_msg': return_msg, 'debug_data': debug_data };
+    }
+    //////</end> input validation
+
+    var firebase_data = data.val();
+
+    for (let skill_uid in firebase_data) {
+
+      if (skill_uid === "deletion_prevention_key") {continue;}
+
+      if (skill_uid in CI.IV_skills_needs_joins === false) {
+        Vue.set(CI.IV_skills_needs_joins, skill_uid, {});
+      }
+
+      var skill_joins_data = firebase_data[skill_uid];
+
+      for (let key in skill_joins_data) {
+        if (key === "deletion_prevention_key") {continue;}
+        
+        /// only update skill's data if firebase last_updated is greater than stored last_updated
+        if (key === "last_updated") {
+          if (key in CI.IV_skills_needs_joins[skill_uid] === true && 
+              CI.IV_skills_needs_joins[skill_uid][key] < skill_joins_data[key]) {
+            Vue.set(CI.IV_skills_needs_joins[skill_uid], key, skill_joins_data[key]);
+          } else {
+            continue;
+          }
+        }
+        ///</end> only update skill's data if firebase last_updated is greater than stored last_updated
+
+        /// storing skill's needs uids
+        if (key === skill_uid) {
+          if ("needs" in CI.IV_skills_needs_joins[skill_uid] === false) {
+            Vue.set(CI.IV_skills_needs_joins[skill_uid], "needs", {});
+          }
+
+          for (let skill_uid in skill_joins_data[key]) {
+            if (skill_uid === "deletion_prevention_key") {continue;}
+
+            Vue.set(CI.IV_skills_needs_joins[skill_uid]["needs"], skill_uid, skill_uid);
+          }
+        }
+        /// storing skill's needs uids
+      }
+    }
+
+    return { 'success': RC.success, 'return_msg': return_msg, 'debug_data': debug_data };
+  }
+
+
   bi7UnsubscribeAllListeners() {
     var debug_data = [];
     var call_result = {};
@@ -792,39 +1017,6 @@ class bi7_watchdog_firebase {
       base_i3_log(G_username, G_ip, G_page_id, task_id, RC.firebase_failure, return_msg, debug_data);
       return { 'success': RC.firebase_failure, 'return_msg': return_msg, 'debug_data': debug_data };
     }
-    return { 'success': RC.success, 'return_msg': return_msg, 'debug_data': debug_data };
-  }
-
-  validateFirebaseListener(listener_object) {
-    var debug_data = [];
-    var call_result = {};
-    var return_msg = "bi7_watchdog_firebase:validateFirebaseListener ";
-    var task_id = "bi7_watchdog_firebase:validateFirebaseListener";
-    var CI = this;
-
-    try {
-      call_result = bi1_data_validation.is_string(listener_object['database']['app']['options_']['apiKey']);
-      debug_data.push(call_result);
-      call_result = bi1_data_validation.is_string(listener_object['key']);
-      debug_data.push(call_result);
-    } catch (err) {
-      return_msg += "object is not a valid firebase listener, errors:" + JSON.stringify(err.message);
-      base_i3_log(G_username, G_ip, G_page_id, task_id, RC.input_validation_failed, return_msg, debug_data);
-      return { success: RC.input_validation_failed, return_msg: return_msg, debug_data: debug_data };
-    }
-
-    var validation_failed = false;
-    for (var index in debug_data) {
-      if (debug_data[index][CR.success] !== RC.success) {
-        validation_failed = true;
-      }
-    }
-    if (validation_failed === true) {
-      return_msg += "object is not a valid firebase listener";
-      base_i3_log(G_username, G_ip, G_page_id, task_id, RC.input_validation_failed, return_msg, debug_data);
-      return { 'success': RC.input_validation_failed, 'return_msg': return_msg, 'debug_data': debug_data };
-    }
-
     return { 'success': RC.success, 'return_msg': return_msg, 'debug_data': debug_data };
   }
 

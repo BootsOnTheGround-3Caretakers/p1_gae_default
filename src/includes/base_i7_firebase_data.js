@@ -40,6 +40,7 @@ class bi7_watchdog_firebase {
     CI.IV_listener_needs_skills_joins_global = null;
     CI.IV_listener_skills_needs_joins_global = null;
     CI.IV_listener_all_users_data_global = null;
+    CI.IV_listener_location_lookup_data_global = null;
 
     // DataStructures IVs
     CI.IV_needs_last_updated = {};
@@ -51,6 +52,7 @@ class bi7_watchdog_firebase {
     CI.IV_needs_skills_joins = {};
     CI.IV_skills_needs_joins = {};
     CI.IV_users_meta_data = {};
+    CI.IV_location_lookup_data = {};
 
     // Function calls needs to call on page load
     CI.bi7initNeedsLastUpdatedGlobalListener();
@@ -59,6 +61,7 @@ class bi7_watchdog_firebase {
     CI.bi7initNeedsSkillsJoinsGlobalListener();
     CI.bi7initSkillsNeedsJoinsGlobalListener();
     CI.bi7initAllUsersDataListener();
+    CI.bi7initLocationLookupDataListener();
   }
 
 
@@ -837,19 +840,23 @@ class bi7_watchdog_firebase {
 
       var need_joins_data = firebase_data[need_uid];
 
+      /// only update need's data if firebase last_updated is greater than stored last_updated
+      if ("last_updated" in CI.IV_needs_skills_joins[need_uid] === false) {
+        Vue.set(CI.IV_needs_skills_joins[need_uid], "last_updated", 0);
+      }
+
+      if ("last_updated" in need_joins_data === true) {
+        if (CI.IV_needs_skills_joins[need_uid]["last_updated"] < need_joins_data["last_updated"]) {
+          Vue.set(CI.IV_needs_skills_joins[need_uid], "last_updated", need_joins_data["last_updated"]);
+        } else {
+          continue;
+        }
+      }
+      ///</end> only update need's data if firebase last_updated is greater than stored last_updated
+
       for (let key in need_joins_data) {
         if (key === "deletion_prevention_key") {continue;}
-        
-        /// only update need's data if firebase last_updated is greater than stored last_updated
-        if (key === "last_updated") {
-          if (key in CI.IV_needs_skills_joins[need_uid] === true && 
-              CI.IV_needs_skills_joins[need_uid][key] < need_joins_data[key]) {
-            Vue.set(CI.IV_needs_skills_joins[need_uid], key, need_joins_data[key]);
-          } else {
-            continue;
-          }
-        }
-        ///</end> only update need's data if firebase last_updated is greater than stored last_updated
+        if (key === "last_updated") {continue;}
 
         /// storing need's skills uids
         if (key === need_uid) {
@@ -865,30 +872,10 @@ class bi7_watchdog_firebase {
         }
         /// storing need's skills uids
       }
-
-
     }
 
     return { 'success': RC.success, 'return_msg': return_msg, 'debug_data': debug_data };
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   bi7initSkillsNeedsJoinsGlobalListener() {
     var debug_data = [];
@@ -1054,19 +1041,23 @@ class bi7_watchdog_firebase {
 
       let firebase_user_data = firebase_data[user_uid];
 
+      /// only update user's data if firebase last_updated is greater than stored last_updated
+      if ("last_updated" in CI.IV_users_meta_data[user_uid] === false) {
+        Vue.set(CI.IV_users_meta_data[user_uid], "last_updated", 0);
+      }
+
+      if ("last_updated" in firebase_user_data === true) {
+        if (CI.IV_users_meta_data[user_uid]["last_updated"] < firebase_user_data["last_updated"]) {
+          Vue.set(CI.IV_users_meta_data[user_uid], "last_updated", firebase_user_data["last_updated"]);
+        } else {
+          continue;
+        }
+      }
+      ///</end> only update user's data if firebase last_updated is greater than stored last_updated
+
       for (let user_data_key in firebase_user_data) {
         if (user_data_key === "deletion_prevention_key") {continue;}
-
-        /// only update user's data if firebase last_updated is greater than stored last_updated
-        if (user_data_key === "last_updated") {
-          if (user_data_key in CI.IV_users_meta_data[user_uid] && 
-              CI.IV_users_meta_data[user_uid][user_data_key] < firebase_user_data[user_data_key]) {
-            Vue.set(CI.IV_users_meta_data[user_uid], user_data_key, firebase_user_data[user_data_key]);
-          } else {
-            continue;
-          }
-        }
-        ///</end> only update user's data if firebase last_updated is greater than stored last_updated
+        if (user_data_key === "last_updated") {continue;}
 
         /// storing user's clusters data
         if (user_data_key === "clusters") {
@@ -1092,6 +1083,168 @@ class bi7_watchdog_firebase {
         Vue.set(CI.IV_users_meta_data[user_uid], user_data_key, firebase_user_data[user_data_key])
       }
     }
+    return { 'success': RC.success, 'return_msg': return_msg, 'debug_data': debug_data };
+  }
+
+  bi7initLocationLookupDataListener() {
+    var debug_data = [];
+    var call_result = {};
+    var return_msg = "bi7_watchdog_firebase:bi7initLocationLookupDataListener ";
+    var task_id = "bi7_watchdog_firebase:bi7initLocationLookupDataListener";
+    var CI = this;
+
+    if (CI.IV_instance_initialized !== true) {
+      setTimeout(CI.bi7initLocationLookupDataListener.bind(CI),500);
+      return;
+    }
+
+    if (CI.IV_listener_location_lookup_data_global !== null) { return; }
+
+    var listener_location = 'location_lookup_data';
+    CI.IV_listener_location_lookup_data_global = CI.IV_firebase_db_object.ref(listener_location);
+
+    ///// removing invalid firebase listener key
+    call_result = CI.validateFirebaseListener(CI.IV_listener_location_lookup_data_global);
+    debug_data.push(call_result)
+    if (call_result[CR.success] !== RC.success) {
+      delete CI.IV_listener_location_lookup_data_global;
+      return_msg += "failed to create listener for " + listener_location;
+      base_i3_log(G_username, G_ip, G_page_id, task_id, RC.firebase_failure, return_msg, debug_data);
+      return { 'success': RC.firebase_failure, 'return_msg': return_msg, 'debug_data': debug_data };
+    }
+    ///// </end> removing invalid firebase listener key
+
+    CI.IV_listener_location_lookup_data_global.on("value",
+      function (a_data) { CI.bi7LocationLookupDataListenerCallback(a_data) }.bind(CI),
+      function (errorObject) {
+        return_msg += "firebase read failed with error data:" + errorObject;
+        base_i3_log(G_username, G_ip, G_page_id, task_id, RC.firebase_failure, return_msg, debug_data);
+      }.bind(CI)
+    );
+
+    return { 'success': RC.success, 'return_msg': return_msg, 'debug_data': debug_data };
+  }
+
+  bi7LocationLookupDataListenerCallback(data) {
+    var debug_data = [];
+    var call_result = {};
+    var return_msg = "bi7_watchdog_firebase:bi7LocationLookupDataListenerCallback ";
+    var task_id = "bi7_watchdog_firebase:bi7LocationLookupDataListenerCallback";
+    var CI = this;
+
+    ////// input validation
+    if (data === null) {
+      return_msg += "data argument is null";
+      base_i3_log(G_username, G_ip, G_page_id, task_id, RC.input_validation_failed, return_msg, debug_data);
+      return { 'success': RC.input_validation_failed, 'return_msg': return_msg, 'debug_data': debug_data };
+    }
+    //////</end> input validation
+
+    var firebase_data = data.val();
+
+    for (let country_uid in firebase_data) {
+      if (country_uid === "deletion_prevention_key") {continue;}
+
+      if (country_uid in CI.IV_location_lookup_data === false) {
+        Vue.set(CI.IV_location_lookup_data, country_uid, {});
+      }
+
+      var country_region_keys = firebase_data[country_uid];
+
+      //// only update data if last_updated on firebase is greater than already stored last_updated
+      if ("last_updated" in CI.IV_location_lookup_data[country_uid] === false) {
+        Vue.set(CI.IV_location_lookup_data[country_uid], "last_updated", 0);
+      }
+
+      if ("last_updated" in country_region_keys === true) {
+        if (CI.IV_location_lookup_data[country_uid]["last_updated"] < country_region_keys["last_updated"]) {
+          Vue.set(CI.IV_location_lookup_data[country_uid], "last_updated", country_region_keys["last_updated"]);
+        } else {
+          continue;
+        }
+      }
+      ////</end> only update data if last_updated on firebase is greater than already stored last_updated
+
+      /// Setting contry's name and short code only if updated
+      if ("1" in country_region_keys === true &&
+          "short_code" in CI.IV_location_lookup_data[country_uid] === false ||
+          (CI.IV_location_lookup_data[country_uid]["short_code"] !== country_region_keys["1"])) {
+        Vue.set(CI.IV_location_lookup_data[country_uid], "short_code", country_region_keys["1"]);
+      }
+
+      if ("2" in country_region_keys === true &&
+          "name" in CI.IV_location_lookup_data[country_uid] === false ||
+          (CI.IV_location_lookup_data[country_uid]["name"] !== country_region_keys["2"])) {
+        Vue.set(CI.IV_location_lookup_data[country_uid], "name", country_region_keys["2"]);
+      }
+      ///</end> Setting contry's name and short code only if updated
+
+      if ("regions" in CI.IV_location_lookup_data === false) {
+        Vue.set(CI.IV_location_lookup_data[country_uid], "regions", {});
+      }
+
+      for (let region_key in country_region_keys) {
+        if (region_key === "deletion_prevention_key") {continue;}
+        if (region_key === "last_updated") {continue;}
+        if (region_key === "1") {continue;}
+        if (region_key === "2") {continue;}
+
+        if (region_key in CI.IV_location_lookup_data[country_uid]["regions"] === false) {
+          Vue.set(CI.IV_location_lookup_data[country_uid]["regions"], region_key, {});
+        }
+
+        var region_area_keys = country_region_keys[region_key];
+
+        //// only update data if last_updated on firebase is greater than already stored last_updated
+        if ("last_updated" in CI.IV_location_lookup_data[country_uid]["regions"][region_key] === false) {
+          Vue.set(CI.IV_location_lookup_data[country_uid]["regions"][region_key], "last_updated", 0);
+        }
+
+        if ("last_updated" in region_area_keys === true) {
+          if (CI.IV_location_lookup_data[country_uid]["regions"][region_key]["last_updated"] < region_area_keys["last_updated"]) {
+            Vue.set(CI.IV_location_lookup_data[country_uid]["regions"][region_key], "last_updated", region_area_keys["last_updated"]);
+          } else {
+            continue;
+          }
+        }
+        ////</end> only update data if last_updated on firebase is greater than already stored last_updated
+        
+        /// Setting region's name and short code only if updated
+        if ("1" in region_area_keys === true &&
+            "short_code" in CI.IV_location_lookup_data[country_uid]["regions"][region_key] === false ||
+            (CI.IV_location_lookup_data[country_uid]["regions"][region_key]["short_code"] !== region_area_keys["1"])) {
+          Vue.set(CI.IV_location_lookup_data[country_uid]["regions"][region_key], "short_code", region_area_keys["1"]);
+        }
+
+        if ("2" in region_area_keys === true &&
+            "name" in CI.IV_location_lookup_data[country_uid]["regions"][region_key] === false ||
+            (CI.IV_location_lookup_data[country_uid]["regions"][region_key]["name"] !== region_area_keys["2"])) {
+          Vue.set(CI.IV_location_lookup_data[country_uid]["regions"][region_key], "name", region_area_keys["2"]);
+        }
+        ///</end> Setting region's name and short code only if updated
+
+        if ("areas" in CI.IV_location_lookup_data === false) {
+          Vue.set(CI.IV_location_lookup_data[country_uid]["regions"][region_key], "areas", {});
+        }
+
+        for (let area_key in region_area_keys) {
+          if (area_key === "deletion_prevention_key") {continue;}
+          if (area_key === "last_updated") {continue;}
+          if (area_key === "1") {continue;}
+          if (area_key === "2") {continue;}
+
+          if (area_key in CI.IV_location_lookup_data[country_uid]["regions"][region_key]["areas"] === false) {
+            Vue.set(CI.IV_location_lookup_data[country_uid]["regions"][region_key]["areas"], area_key, {});
+          }
+
+          var area_data = region_area_keys[area_key];
+          Vue.set(CI.IV_location_lookup_data[country_uid]["regions"][region_key]["areas"][area_key], "zip", area_data["1"]);
+          Vue.set(CI.IV_location_lookup_data[country_uid]["regions"][region_key]["areas"][area_key], "last_updated", area_data["last_updated"]);
+        }
+
+      }
+    }
+
     return { 'success': RC.success, 'return_msg': return_msg, 'debug_data': debug_data };
   }
 

@@ -1059,28 +1059,89 @@ class bi7_watchdog_firebase {
         if (user_data_key === "deletion_prevention_key") {continue;}
         if (user_data_key === "last_updated") {continue;}
 
+        /// storing user's needers data
+        if (user_data_key === "needers") {
+          if ("needers" in CI.IV_users_meta_data[user_uid] === false) {
+            Vue.set(CI.IV_users_meta_data[user_uid], "needers", {});
+          }
+
+          var needers_list = firebase_user_data[user_data_key];
+
+          /// only update user's needers data if firebase last_updated is greater than stored last_updated
+          if ("last_updated" in CI.IV_users_meta_data[user_uid]["needers"] === false) {
+            Vue.set(CI.IV_users_meta_data[user_uid]["needers"], "last_updated", 0);
+          }
+
+          if ("last_updated" in needers_list === true) {
+            if (CI.IV_users_meta_data[user_uid]["needers"]["last_updated"] < needers_list["last_updated"]) {
+              Vue.set(CI.IV_users_meta_data[user_uid]["needers"], "last_updated", needers_list["last_updated"]);
+            } else {
+              continue;
+            }
+          }
+          ///</end> only update user's needers data if firebase last_updated is greater than stored last_updated
+
+          for (let need_key in needers_list) {
+            if (need_key === "deletion_prevention_key") {continue;}
+            if (need_key === "last_updated") {continue;}
+
+            if (need_key in CI.IV_users_meta_data[user_uid]["needers"] === false) {
+              Vue.set(CI.IV_users_meta_data[user_uid]["needers"], need_key, {});
+            }
+
+            let needer_data = needers_list[need_key];
+            Vue.set(CI.IV_users_meta_data[user_uid]["needers"][need_key], "last_updated", needer_data["last_updated"]);
+          }
+        }
+        ///</end? storing user's needers data
+
+        /// storing user's skills data
+        else if (user_data_key === "skills") {
+          if ("skills" in CI.IV_users_meta_data[user_uid] === false) {
+            Vue.set(CI.IV_users_meta_data[user_uid], "skills", {});
+          }
+
+          var skills_list = firebase_user_data[user_data_key];
+
+          /// only update user's skills data if firebase last_updated is greater than stored last_updated
+          if ("last_updated" in CI.IV_users_meta_data[user_uid]["skills"] === false) {
+            Vue.set(CI.IV_users_meta_data[user_uid]["skills"], "last_updated", 0);
+          }
+
+          if ("last_updated" in skills_list === true) {
+            if (CI.IV_users_meta_data[user_uid]["skills"]["last_updated"] < skills_list["last_updated"]) {
+              Vue.set(CI.IV_users_meta_data[user_uid]["skills"], "last_updated", skills_list["last_updated"]);
+            } else {
+              continue;
+            }
+          }
+          ///</end> only update user's skills data if firebase last_updated is greater than stored last_updated
+
+          for (let skill_key in skills_list) {
+            if (skill_key === "deletion_prevention_key") {continue;}
+            if (skill_key === "last_updated") {continue;}
+
+            if (skill_key in CI.IV_users_meta_data[user_uid]["skills"] === false) {
+              Vue.set(CI.IV_users_meta_data[user_uid]["skills"], skill_key, {});
+            }
+
+            let skill_data = skills_list[skill_key];
+            Vue.set(CI.IV_users_meta_data[user_uid]["skills"][skill_key], "last_updated", skill_data["last_updated"]);
+          }
+          continue;
+        }
+        ///</end? storing user's skills data
+
         /// storing user's clusters data
-        if (user_data_key === "clusters") {
+        else if (user_data_key === "clusters") {
           // TODO- Store user's clusters information
           continue;
         }
         ///</end? storing user's clusters data
 
-        /// storing user's needers data
-        if (user_data_key === "needers") {
-          // TODO- Store user's needers information
-          continue;
+        else {
+          Vue.set(CI.IV_users_meta_data[user_uid], user_data_key, firebase_user_data[user_data_key])
         }
-        ///</end? storing user's needers data
-
-        /// storing user's skills data
-        if (user_data_key === "skills") {
-          // TODO- Store user's skills information
-          continue;
-        }
-        ///</end? storing user's skills data
-
-        Vue.set(CI.IV_users_meta_data[user_uid], user_data_key, firebase_user_data[user_data_key])
       }
     }
     return { 'success': RC.success, 'return_msg': return_msg, 'debug_data': debug_data };

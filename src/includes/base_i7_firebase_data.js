@@ -41,6 +41,7 @@ class bi7_watchdog_firebase {
     CI.IV_listener_skills_needs_joins_global = null;
     CI.IV_listener_all_users_data_global = null;
     CI.IV_listener_location_lookup_data_global = null;
+    CI.IV_listener_clusters_last_updated_global = null;
 
     // DataStructures IVs
     CI.IV_needs_last_updated = {};
@@ -53,6 +54,8 @@ class bi7_watchdog_firebase {
     CI.IV_skills_needs_joins = {};
     CI.IV_users_meta_data = {};
     CI.IV_location_lookup_data = {};
+    CI.IV_clusters_last_updated = {};
+    CI.IV_clusters_meta_data = {};
 
     // Function calls needs to call on page load
     CI.bi7initNeedsLastUpdatedGlobalListener();
@@ -62,6 +65,7 @@ class bi7_watchdog_firebase {
     CI.bi7initSkillsNeedsJoinsGlobalListener();
     CI.bi7initAllUsersDataListener();
     CI.bi7initLocationLookupDataListener();
+    CI.bi7initClustersLastUpdatedGlobalListener()
   }
 
 
@@ -1305,6 +1309,233 @@ class bi7_watchdog_firebase {
 
       }
     }
+
+    return { 'success': RC.success, 'return_msg': return_msg, 'debug_data': debug_data };
+  }
+
+  bi7initClustersLastUpdatedGlobalListener() {
+    var debug_data = [];
+    var call_result = {};
+    var return_msg = "bi7_watchdog_firebase:bi7initClustersLastUpdatedGlobalListener ";
+    var task_id = "bi7_watchdog_firebase:bi7initClustersLastUpdatedGlobalListener";
+    var CI = this;
+
+    if (CI.IV_instance_initialized !== true) {
+      setTimeout(CI.bi7initClustersLastUpdatedGlobalListener.bind(CI),500);
+      return;
+    }
+
+    if (CI.IV_listener_clusters_last_updated_global !== null) { return; }
+
+    var listener_location = 'clusters_last_updated';
+    CI.IV_listener_clusters_last_updated_global = CI.IV_firebase_db_object.ref(listener_location);
+
+    ///// removing invalid firebase listener key
+    call_result = CI.validateFirebaseListener(CI.IV_listener_clusters_last_updated_global);
+    debug_data.push(call_result)
+    if (call_result[CR.success] !== RC.success) {
+      delete CI.IV_listener_clusters_last_updated_global;
+      return_msg += "failed to create listener for " + listener_location;
+      base_i3_log(G_username, G_ip, G_page_id, task_id, RC.firebase_failure, return_msg, debug_data);
+      return { 'success': RC.firebase_failure, 'return_msg': return_msg, 'debug_data': debug_data };
+    }
+    ///// </end> removing invalid firebase listener key
+
+    CI.IV_listener_clusters_last_updated_global.on("value",
+      function (a_data) { CI.bi7ClustersLastUpdatedGlobalListenerCallback(a_data) }.bind(CI),
+      function (errorObject) {
+        return_msg += "firebase read failed with error data:" + errorObject;
+        base_i3_log(G_username, G_ip, G_page_id, task_id, RC.firebase_failure, return_msg, debug_data);
+      }.bind(CI)
+    );
+
+    return { 'success': RC.success, 'return_msg': return_msg, 'debug_data': debug_data };
+  }
+
+  bi7ClustersLastUpdatedGlobalListenerCallback(data) {
+    var debug_data = [];
+    var call_result = {};
+    var return_msg = "bi7_watchdog_firebase:bi7ClustersLastUpdatedGlobalListenerCallback ";
+    var task_id = "bi7_watchdog_firebase:bi7ClustersLastUpdatedGlobalListenerCallback";
+    var CI = this;
+
+    ////// input validation
+    if (data === null) {
+      return_msg += "data argument is null";
+      base_i3_log(G_username, G_ip, G_page_id, task_id, RC.input_validation_failed, return_msg, debug_data);
+      return { 'success': RC.input_validation_failed, 'return_msg': return_msg, 'debug_data': debug_data };
+    }
+    //////</end> input validation
+
+    var firebase_data = data.val();
+
+    for (let country_key in firebase_data) {
+      if (country_key === "deletion_prevention_key") {continue;}
+      if (country_key === "None") {continue;}
+
+      if (country_key in CI.IV_clusters_last_updated === false) {
+        Vue.set(CI.IV_clusters_last_updated, country_key, {});
+      }
+
+      var regions_wise_data = firebase_data[country_key];
+      for (let region_key in regions_wise_data) {
+        if (region_key === "deletion_prevention_key") {continue;}
+
+        if (region_key in CI.IV_clusters_last_updated[country_key] === false) {
+          Vue.set(CI.IV_clusters_last_updated[country_key], region_key, {});
+        }
+
+        var areas_wise_data = regions_wise_data[region_key];
+        for (let area_key in areas_wise_data) {
+          if (area_key === "deletion_prevention_key") {continue;}
+
+          if (area_key in CI.IV_clusters_last_updated[country_key][region_key] === false) {
+            Vue.set(CI.IV_clusters_last_updated[country_key][region_key], area_key, {});
+          }
+
+          var date_wise_data = areas_wise_data[area_key];
+          for (let date_key in date_wise_data) {
+            if (date_key === "deletion_prevention_key") {continue;}
+
+            if (date_key in CI.IV_clusters_last_updated[country_key][region_key][area_key] === false) {
+              Vue.set(CI.IV_clusters_last_updated[country_key][region_key][area_key], date_key, {});
+            }
+
+            var hours_wise_data = date_wise_data[date_key];
+            for (let hour_key in hours_wise_data) {
+              if (hour_key === "deletion_prevention_key") {continue;}
+
+              if (hour_key in CI.IV_clusters_last_updated[country_key][region_key][area_key][date_key] === false) {
+                Vue.set(CI.IV_clusters_last_updated[country_key][region_key][area_key][date_key], hour_key, {});
+              }
+
+              var cluster_uids_list = hours_wise_data[hour_key];
+              for (let cluster_uid in cluster_uids_list) {
+                if (cluster_uid === "deletion_prevention_key") {continue;}
+
+                if (cluster_uid in CI.IV_clusters_last_updated[country_key][region_key][area_key][date_key][hour_key] === false) {
+                  Vue.set(CI.IV_clusters_last_updated[country_key][region_key][area_key][date_key][hour_key], cluster_uid, {});
+                }
+
+                let firebase_last_updated = cluster_uids_list[cluster_uid]["last_updated"];
+                if (firebase_last_updated === null || firebase_last_updated === undefined) {continue;}
+
+                /// only updating and fetching metadata for clusters
+                /// which last_updated_at is greater than already saved metadata
+                if ('last_updated' in CI.IV_clusters_last_updated[country_key][region_key][area_key][date_key][hour_key][cluster_uid] === false || 
+                    CI.IV_clusters_last_updated[country_key][region_key][area_key][date_key][hour_key][cluster_uid]['last_updated'] === null ||
+                    CI.IV_clusters_last_updated[country_key][region_key][area_key][date_key][hour_key][cluster_uid]['last_updated'] === undefined) {
+                  Vue.set(CI.IV_clusters_last_updated[country_key][region_key][area_key][date_key][hour_key][cluster_uid], 'last_updated', firebase_last_updated);
+                  CI.bi7GetClusterMetaDataOnce(cluster_uid);
+                } else if (CI.IV_clusters_last_updated[country_key][region_key][area_key][date_key][hour_key][cluster_uid]['last_updated'] < firebase_last_updated) {
+                  Vue.set(CI.IV_clusters_last_updated[country_key][region_key][area_key][date_key][hour_key][cluster_uid], 'last_updated', firebase_last_updated);
+                  CI.bi7GetClusterMetaDataOnce(cluster_uid);
+                }
+                ///</end> only updating and fetching metadata for clusters
+                ///</end> which last_updated_at is greater than already saved metadata
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return { 'success': RC.success, 'return_msg': return_msg, 'debug_data': debug_data };
+  }
+
+  bi7GetClusterMetaDataOnce(cluster_uid) {
+    var debug_data = [];
+    var call_result = {};
+    var return_msg = "bi7_watchdog_firebase:bi7GetClusterMetaDataOnce ";
+    var task_id = "bi7_watchdog_firebase:bi7GetClusterMetaDataOnce";
+    var CI = this;
+    console.log("Started for cluster_uid:", cluster_uid);
+
+    ////// input validation 
+
+    // TODO!~ mu- confirm format and create validation function in base_i1
+    // call_result = bi1_data_validation.is_cluster_uid(cluster_uid);
+    // debug_data.push(call_result);
+    // if (call_result[CR.success] !== RC.success) {
+    //   return_msg += "input validation failed";
+    //   base_i3_log(G_username, G_ip, G_page_id, task_id, RC.input_validation_failed, return_msg, debug_data);
+    //   return { 'success': call_result[CR.success], 'return_msg': return_msg, 'debug_data': debug_data };
+    // }
+    //////</end> input validation 
+
+    var listener_location = `clusters/${cluster_uid}`;
+    var location_ref = CI.IV_firebase_db_object.ref(listener_location);
+
+    ///// removing invalid firebase listener key
+    call_result = CI.validateFirebaseListener(location_ref);
+    debug_data.push(call_result)
+    if (call_result[CR.success] !== RC.success) {
+      return_msg += "failed to create listener for " + listener_location;
+      base_i3_log(G_username, G_ip, G_page_id, task_id, RC.firebase_failure, return_msg, debug_data);
+      return { 'success': RC.firebase_failure, 'return_msg': return_msg, 'debug_data': debug_data };
+    }
+    ///// </end> removing invalid firebase listener key
+
+    location_ref.once("value",
+      function (a_data) { CI.bi7ClusterMetaDataOnceCallback(cluster_uid, a_data) }.bind(CI),
+      function (errorObject) {
+        return_msg += "firebase read failed with error data:" + errorObject;
+        base_i3_log(G_username, G_ip, G_page_id, task_id, RC.firebase_failure, return_msg, debug_data);
+      }.bind(CI)
+    );
+  }
+
+  bi7ClusterMetaDataOnceCallback(cluster_uid, data) {
+    var debug_data = [];
+    var call_result = {};
+    var return_msg = "bi7_watchdog_firebase:bi7ClusterMetaDataOnceCallback ";
+    var task_id = "bi7_watchdog_firebase:bi7ClusterMetaDataOnceCallback";
+    var CI = this;
+
+    ////// input validation 
+
+    // TODO!~ mu- confirm format and create validation function in base_i1
+    // call_result = bi1_data_validation.is_cluster_uid(cluster_uid);
+    // debug_data.push(call_result);
+    // if (call_result[CR.success] !== RC.success) {
+    //   return_msg += "input validation failed";
+    //   base_i3_log(G_username, G_ip, G_page_id, task_id, RC.input_validation_failed, return_msg, debug_data);
+    //   return { 'success': call_result[CR.success], 'return_msg': return_msg, 'debug_data': debug_data };
+    // }
+
+    if (data === null) {
+      return_msg += "data argument is null";
+      base_i3_log(G_username, G_ip, G_page_id, task_id, RC.input_validation_failed, return_msg, debug_data);
+      return { 'success': RC.input_validation_failed, 'return_msg': return_msg, 'debug_data': debug_data };
+    }
+    //////</end> input validation 
+
+    var firebase_data = data.val();
+
+
+    if (cluster_uid in CI.IV_clusters_meta_data === false) {
+      Vue.set(CI.IV_clusters_meta_data, cluster_uid, {});
+    }
+
+    let cluster_data = {
+      cluster_uid: firebase_data["cluster_uid"] ? firebase_data["cluster_uid"] : "",
+      expiration_date: firebase_data["expiration_date"] ? firebase_data["expiration_date"] : "",
+      last_updated: firebase_data["last_updated"] ? firebase_data["last_updated"] : "",
+      location: firebase_data["location"] ? firebase_data["location"] : "",
+      needer_uid: firebase_data["needer_uid"] ? firebase_data["needer_uid"] : "",
+      users: {}
+    }
+
+    if ('users' in firebase_data === true) {
+
+      for (let user_key in firebase_data['users']) {
+        if (user_key === "deletion_prevention_key") {continue;}
+
+        cluster_data["users"][user_key] = firebase_data['users'][user_key];
+      }
+    }
+
+    Vue.set(CI.IV_clusters_meta_data, cluster_uid, cluster_data);
 
     return { 'success': RC.success, 'return_msg': return_msg, 'debug_data': debug_data };
   }

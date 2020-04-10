@@ -858,23 +858,16 @@ class bi7_watchdog_firebase {
       }
       ///</end> only update need's data if firebase last_updated is greater than stored last_updated
 
-      for (let key in need_joins_data) {
-        if (key === "deletion_prevention_key") {continue;}
-        if (key === "last_updated") {continue;}
+      if ("skills" in CI.IV_needs_skills_joins[need_uid] === false) {
+        Vue.set(CI.IV_needs_skills_joins[need_uid], "skills", {});
+      }
 
-        /// storing need's skills uids
-        if (key === need_uid) {
-          if ("skills" in CI.IV_needs_skills_joins[need_uid] === false) {
-            Vue.set(CI.IV_needs_skills_joins[need_uid], "skills", {});
-          }
+      let skill_uid = need_joins_data["skill_uid"];
 
-          for (let skill_uid in need_joins_data[key]) {
-            if (skill_uid === "deletion_prevention_key") {continue;}
-
-            Vue.set(CI.IV_needs_skills_joins[need_uid]['skills'], skill_uid, skill_uid);
-          }
+      if (skill_uid !== null && skill_uid !== undefined) {
+        if (skill_uid in CI.IV_needs_skills_joins[need_uid]["skills"] === false) {
+          Vue.set(CI.IV_needs_skills_joins[need_uid]["skills"], skill_uid, skill_uid);
         }
-        /// storing need's skills uids
       }
     }
 
@@ -947,33 +940,30 @@ class bi7_watchdog_firebase {
 
       var skill_joins_data = firebase_data[skill_uid];
 
-      for (let key in skill_joins_data) {
-        if (key === "deletion_prevention_key") {continue;}
-        
-        /// only update skill's data if firebase last_updated is greater than stored last_updated
-        if (key === "last_updated") {
-          if (key in CI.IV_skills_needs_joins[skill_uid] === true && 
-              CI.IV_skills_needs_joins[skill_uid][key] < skill_joins_data[key]) {
-            Vue.set(CI.IV_skills_needs_joins[skill_uid], key, skill_joins_data[key]);
-          } else {
-            continue;
-          }
+      /// only update skill's data if firebase last_updated is greater than stored last_updated
+      if ("last_updated" in CI.IV_skills_needs_joins[skill_uid] === false) {
+        Vue.set(CI.IV_skills_needs_joins[skill_uid], "last_updated", 0);
+      }
+
+      if ("last_updated" in skill_joins_data === true) {
+        if (CI.IV_skills_needs_joins[skill_uid]["last_updated"] < skill_joins_data["last_updated"]) {
+          Vue.set(CI.IV_skills_needs_joins[skill_uid], "last_updated", skill_joins_data["last_updated"]);
+        } else {
+          continue;
         }
-        ///</end> only update skill's data if firebase last_updated is greater than stored last_updated
+      }
+      ///</end> only update skill's data if firebase last_updated is greater than stored last_updated
 
-        /// storing skill's needs uids
-        if (key === skill_uid) {
-          if ("needs" in CI.IV_skills_needs_joins[skill_uid] === false) {
-            Vue.set(CI.IV_skills_needs_joins[skill_uid], "needs", {});
-          }
+      if ("needs" in CI.IV_skills_needs_joins[skill_uid] === false) {
+        Vue.set(CI.IV_skills_needs_joins[skill_uid], "needs", {});
+      }
 
-          for (let skill_uid in skill_joins_data[key]) {
-            if (skill_uid === "deletion_prevention_key") {continue;}
+      let need_uid = skill_joins_data["need_uid"];
 
-            Vue.set(CI.IV_skills_needs_joins[skill_uid]["needs"], skill_uid, skill_uid);
-          }
+      if (need_uid !== null && need_uid !== undefined) {
+        if (need_uid in CI.IV_skills_needs_joins[skill_uid]["needs"] === false) {
+          Vue.set(CI.IV_skills_needs_joins[skill_uid]["needs"], need_uid, need_uid);
         }
-        /// storing skill's needs uids
       }
     }
 
@@ -1449,7 +1439,6 @@ class bi7_watchdog_firebase {
     var return_msg = "bi7_watchdog_firebase:bi7GetClusterMetaDataOnce ";
     var task_id = "bi7_watchdog_firebase:bi7GetClusterMetaDataOnce";
     var CI = this;
-    console.log("Started for cluster_uid:", cluster_uid);
 
     ////// input validation 
 

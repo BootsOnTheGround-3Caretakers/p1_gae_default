@@ -35,6 +35,7 @@
             <div class="dropdown-menu">
               <a class="dropdown-item" href="javascript:;">Home</a>
               <a class="dropdown-item" href="javascript:;">My Clusters</a>
+              <router-link v-if="!C_isGuestUser && !C_notAuthenticated" class="dropdown-item" to="/admin">Admin</router-link>
               <a v-if="!C_isGuestUser && !C_notAuthenticated" class="dropdown-item" href="javascript:;" @click.stop="signOut">Logout</a>
             </div>
           </li>
@@ -50,7 +51,7 @@
     name: "Header",
     data() {
       return {
-        DV_userInfo: this.$root.$data.userInfo
+        DV_userInfo: window.vue_instance.$data.userInfo
       }
     },
     methods: {

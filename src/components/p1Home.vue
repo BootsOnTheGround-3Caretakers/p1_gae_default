@@ -27,15 +27,12 @@
 </template>
 
 <script>
-import http from 'axios'
-import AWN from "awesome-notifications";
-
-export default {
-  name: 'p1Home',
-  data () {
-    return {
-      
+  export default {
+    name: 'p1Home',
+    data () {
+      return {
+        
+      }
     }
   }
-}
 </script>

@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import p1Home from '@/components/p1Home'
+import AdminPage from '@/components/AdminPage'
 import p5PeopleList from '@/components/p5PeopleList'
 import Login from '@/components/authentication/Login'
 import Register from '@/components/authentication/Register'
@@ -22,6 +23,11 @@ export default new Router({
       path: '/register',
       name: 'Register',
       component: Register
+    },
+    {
+      path: '/admin',
+      name: 'Admin',
+      component: AdminPage
     },
     {
       path: '/',

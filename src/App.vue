@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="app" v-if="loading === false">
     <Header></Header>
     <router-view/>
     <Footer></Footer>
@@ -13,7 +13,24 @@ import Footer from './components/layout/Footer';
 
 export default {
   name: 'App',
-  components: {Header, Footer}
+  components: {Header, Footer},
+  data() {
+    return {
+      loading: true
+    }
+  },
+  mounted() {
+    this.waitForVueInstanceToLoad();
+  },
+  methods: {
+    waitForVueInstanceToLoad() {
+      if (window.vue_instance === undefined) {
+        setTimeout(this.waitForVueInstanceToLoad, 200);
+        return;
+      }
+      this.loading = false;
+    }
+  }
 }
 </script>
 

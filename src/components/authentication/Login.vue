@@ -104,16 +104,12 @@ export default {
         this.$awn.alert(notification)
       }
     },
-    passwordResetSent: function() {
-      // TODO - install npm module for awsome-notification and enable this code
-      
-      // let notification = 'You should receive a password reset email shortly.'
-      // this.$store.commit('updateNotifications', notification)
-      // this.$awn.info(notification)
-      alert('You should receive a password reset email shortly.')
+    passwordResetSent: function() {      
+      let notification = 'You should receive a password reset email shortly.'
+      this.$awn.info(notification)
     },
-     passwordResetFailed: function() {
-      alert("password reset failed with errorr:" + JSON.stringify(error))
+     passwordResetFailed: function(error) {
+      this.$awn.alert("password reset failed with errorr:" + JSON.stringify(error));
     },
   }
 };

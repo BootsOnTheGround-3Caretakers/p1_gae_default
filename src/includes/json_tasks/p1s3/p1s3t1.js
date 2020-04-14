@@ -4,7 +4,7 @@ import { RC, CR, AJRS } from '../../base_i2_success_codes'
 import base_i3_log from '../../base_i3_logging'
 import { ajax } from 'noquery-ajax'
 
-function createNeed(name, requirements=null) {
+function createNeed(firebase_email, firebase_token, name, requirements=null) {
   return new Promise(function (resolve, reject) {
     var return_msg = "";
     var debug_data = [];
@@ -13,6 +13,10 @@ function createNeed(name, requirements=null) {
     var response_data = {};
 
     ///// input validation
+    call_result = bi1_data_validation.is_email_address(firebase_email);
+    debug_data.push(call_result);
+    call_result = bi1_data_validation.is_string(firebase_token);
+    debug_data.push(call_result);
     call_result = bi1_data_validation.is_string(name);
     debug_data.push(call_result);
 
@@ -36,11 +40,12 @@ function createNeed(name, requirements=null) {
       return;
     }
     /////</end> input validation
-
     ajax({
-      url: window.G_ajax_test_domain + '/s3/p1s3t1-create-need',
+      url: "https://p1s3-web-requests-dot-aqueous-choir-160420.appspot.com/p1s3t1-create-need",
       method: 'POST',
       data: {
+        'p1s3_firebase_email': firebase_email,
+        'p1s3_token': firebase_token,
         'p1s3t1_name': name,
         'p1s3t1_requirements': requirements
       },

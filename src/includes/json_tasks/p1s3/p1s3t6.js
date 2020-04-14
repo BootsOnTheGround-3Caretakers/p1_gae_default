@@ -4,7 +4,7 @@ import { RC, CR, AJRS } from '../../base_i2_success_codes'
 import base_i3_log from '../../base_i3_logging'
 import { ajax } from 'noquery-ajax'
 
-function createSkill(skill_name, skill_type, description=null, certifications_needed=null) {
+function createSkill(firebase_email, firebase_token, skill_name, skill_type, description=null, certifications_needed=null) {
   return new Promise(function (resolve, reject) {
     var return_msg = "";
     var debug_data = [];
@@ -13,6 +13,10 @@ function createSkill(skill_name, skill_type, description=null, certifications_ne
     var response_data = {};
 
     ///// input validation
+    call_result = bi1_data_validation.is_email_address(firebase_email);
+    debug_data.push(call_result);
+    call_result = bi1_data_validation.is_string(firebase_token);
+    debug_data.push(call_result);
     call_result = bi1_data_validation.is_string(skill_name);
     debug_data.push(call_result);
     call_result = bi1_data_validation.is_string(skill_type);
@@ -45,9 +49,11 @@ function createSkill(skill_name, skill_type, description=null, certifications_ne
     /////</end> input validation
     
     ajax({
-      url: window.G_ajax_test_domain + '/s3/p1s3t6-create-skill',
+      url: 'https://p1s3-web-requests-dot-aqueous-choir-160420.appspot.com/p1s3t6-create-skill',
       method: 'POST',
       data: {
+        'p1s3_firebase_email': firebase_email,
+        'p1s3_token': firebase_token,
         'p1s3t6_skill_name': skill_name,
         'p1s3t6_skill_type': skill_type,
         'p1s3t6_description': description,

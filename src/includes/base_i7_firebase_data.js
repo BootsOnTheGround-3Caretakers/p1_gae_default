@@ -277,17 +277,65 @@ class bi7_watchdog_firebase {
       return { 'success': RC.input_validation_failed, 'return_msg': return_msg, 'debug_data': debug_data };
     }
 
-    // TODO- Add here logic to fetch user's information
-    // TODO- For now setting firebase information
-    window.vue_instance.$root.$data.userInfo['firstName'] = window.G_firebase_auth.IV_first_name;
-    window.vue_instance.$root.$data.userInfo['lastName'] = window.G_firebase_auth.IV_last_name;
-    window.vue_instance.$root.$data.userInfo['contactEmail'] = window.G_firebase_auth.IV_email_address;
-    window.vue_instance.$root.$data.userInfo['uid'] = window.G_firebase_auth.IV_uid;
-    window.vue_instance.$root.$data.userInfo['authenticated'] = window.G_firebase_auth.IV_token_received;
-    window.vue_instance.$root.$data.userInfo['isGuest'] = window.G_firebase_auth.IV_is_guest
+    var listener_location = CI.IV_user_folder_path +  '/meta_data';
+    CI.IV_listener_user_info['info'] = CI.IV_firebase_db_object.ref(listener_location);
+
+    ///// removing invalid firebase listener key
+    call_result = CI.validateFirebaseListener(CI.IV_listener_user_info['info']);
+    debug_data.push(call_result)
+    if (call_result[CR.success] !== RC.success) {
+      delete CI.IV_listener_user_info['info'];
+      return_msg += "failed to create listener for " + listener_location;
+      base_i3_log(G_username, G_ip, G_page_id, task_id, RC.firebase_failure, return_msg, debug_data);
+      return { 'success': RC.firebase_failure, 'return_msg': return_msg, 'debug_data': debug_data };
+    }
+    ///// </end> removing invalid firebase listener key
+
+    // CI.IV_listener_user_info['info'].on("value",CI.UserInfoListener.bind(CI),
+    // function (errorObject) {
+    //   return_msg += "firebase read failed with error data:" + errorObject;
+    //   base_i3_log(G_username, G_ip, G_page_id, task_id, RC.firebase_failure, return_msg, debug_data);
+    // }.bind(CI));
+
+
+    // TODO- For now setting firebase information until p1s5t3 call is not operational
+    CI.IV_user_info['first_name'] = window.G_firebase_auth.IV_first_name;
+    CI.IV_user_info['last_name'] = window.G_firebase_auth.IV_last_name;
+    CI.IV_user_info['contact_email'] = window.G_firebase_auth.IV_email_address;
+    CI.IV_user_info['uid'] = window.G_firebase_auth.IV_uid;
+    
+    CI.callCallBackFunction(CI.IV_data_change_callbacks['IV_user_info']);
+    //</end> TODO- For now setting firebase information until p1s5t3 call is not operational
+
+    return { 'success': RC.success, 'return_msg': return_msg, 'debug_data': debug_data };
+  }
+
+  UserInfoListener(data) {
+    var debug_data = [];
+    var call_result = {};
+    var return_msg = "bi7_watchdog_firebase:UserInfoListener ";
+    var task_id = "bi7_watchdog_firebase:UserInfoListener";
+    
+    ////// input validation 
+    if (data === null) {
+      return_msg += "data argument is null";
+      base_i3_log(G_username, G_ip, G_page_id, task_id, RC.input_validation_failed, return_msg, debug_data);
+      return { 'success': RC.input_validation_failed, 'return_msg': return_msg, 'debug_data': debug_data };
+    }
+    //////</end> input validation 
+
+    var CI = this;
+    var firebase_data = data.val();
+
+    for (var field in firebase_data) {
+      if (field in CI.IV_user_info) {
+        CI.IV_user_info[field] = firebase_data[field];
+        CI.IV_user_folder_valid[field] = true;
+      }
+    }
 
     CI.callCallBackFunction(CI.IV_data_change_callbacks['IV_user_info']);
-
+    return { 'success': RC.success, 'return_msg': return_msg, 'debug_data': debug_data };
   }
 
   bi7initNeedsLastUpdatedGlobalListener() {

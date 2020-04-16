@@ -35,7 +35,8 @@ window.vue_instance = new Vue({
       hashtagsLastUpdated: {},
       needsMetaData: {},
       skillsMetaData: {},
-      hashtagsMetaData: {}
+      hashtagsMetaData: {},
+      firebaseDbConnected: false
     }
   },
   router

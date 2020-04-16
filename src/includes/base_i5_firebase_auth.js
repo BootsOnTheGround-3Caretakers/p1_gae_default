@@ -13,6 +13,11 @@ class bi5_firebase {
     CI.IV_email_address = '';
     CI.IV_first_name = "";
     CI.IV_last_name = "";
+
+    // Will be used to create new user in firebase if not already exists.
+    CI.IV_form_full_name = null;
+    CI.IV_form_phone_number = null;
+    
     CI.IV_emailVerified = false;
     CI.IV_photoURL = "";
     CI.IV_uid = '';
@@ -448,7 +453,7 @@ class bi5_firebase {
     return true;
   }
 
-  bi5CreateUser(email = null, password = null) {
+  bi5CreateUser(email = null, password = null, full_name = null, phone_number = null) {
     var call_result = {};
     var debug_data = [];
     var return_msg = "bi5_firebase:bi5CreateUser";
@@ -482,6 +487,9 @@ class bi5_firebase {
     CI.IV_token_update_count = 0;
     CI.IV_guest_login_requested = false;
     CI.IV_token_verification_loop_active = false;
+    CI.IV_form_full_name = full_name;
+    CI.IV_form_phone_number = phone_number;
+
     firebase.auth().createUserWithEmailAndPassword(email, password).catch(function (error) {
       CI.callCallBackFunction(CI.IV_login_page_callbacks['create_user_failed'], error)
       return_msg += "user creation failed with error:" + JSON.stringify(error);

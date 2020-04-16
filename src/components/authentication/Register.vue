@@ -42,6 +42,23 @@
               </div>
 
               <div class="form-group row">
+                <label for="phone_number" class="col-md-4 col-form-label text-md-right">Phone Number</label>
+
+                <div class="col-md-6">
+                  <input
+                    id="phone_number"
+                    type="phone_number"
+                    class="form-control"
+                    name="phone_number"
+                    value
+                    required
+                    autofocus
+                    v-model="form.phone_number"
+                  />
+                </div>
+              </div>
+
+              <div class="form-group row">
                 <label for="password" class="col-md-4 col-form-label text-md-right">Password</label>
 
                 <div class="col-md-6">
@@ -79,7 +96,8 @@ export default {
       form: {
         name: "",
         email: "",
-        password: ""
+        password: "",
+        phone_number: ""
       },
       error: null
     };

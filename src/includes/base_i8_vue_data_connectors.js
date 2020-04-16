@@ -2,22 +2,24 @@
 import { CR, RC, AJRS } from './base_i2_success_codes'
 import bi1_data_validation from './base_i1_datavalidation'
 import base_i3_log from './base_i3_logging'
+import checkIfUserExists from './json_tasks/p1s5/p1s5t3.js'
+import createUser from './json_tasks/p1s3/p1s3t3.js'
 import 'vue'
 
 class bi8_vue_data_connectors {
 
   static bi8SetVueUserInfoSuccess() {
-    // window.vue_instance.$root.$data.userInfo.firstName = window.G_firebase_data.IV_user_info['first_name']
-    // window.vue_instance.$root.$data.userInfo.lastName = window.G_firebase_data.IV_user_info['last_name']
-    // window.vue_instance.$root.$data.userInfo.contactEmail =  window.G_firebase_data.IV_user_info['contact_email']
+    window.vue_instance.$root.$data.userInfo.firstName = window.G_firebase_data.IV_user_info['first_name']
+    window.vue_instance.$root.$data.userInfo.lastName = window.G_firebase_data.IV_user_info['last_name']
+    window.vue_instance.$root.$data.userInfo.contactEmail =  window.G_firebase_data.IV_user_info['contact_email']
+    window.vue_instance.$root.$data.userInfo.uid = window.G_firebase_data.IV_user_info['uid']
+    window.vue_instance.$root.$data.firebaseData.firebaseDbConnected = true;
     
     // if (window.vue_instance.$root.$data.userInfo.uid !== window.G_firebase_data.IV_user_info['uid']) {
-    //   window.vue_instance.$root.$data.userInfo.uid = window.G_firebase_data.IV_user_info['uid']
     //   window.G_firebase_data.InitOrgListeners()
     //   window.G_firebase_data.bi7initRulesListener()
     //   window.G_firebase_data.bi7initNotificationRuleJoinsListener()
     //   window.G_firebase_data.bi7InitAccountNotificationsListener()
-    //   window.vue_instance.$root.$data.watchdog.watchdogDbConnected = true;
     // }
   }
 
@@ -25,8 +27,8 @@ class bi8_vue_data_connectors {
     if (window.G_firebase_auth.IV_token_received === false || typeof G_firebase_auth.IV_uid !== 'string' ||  G_firebase_auth.IV_uid.length < 5) {
       setTimeout(bi8_vue_data_connectors.bi8SignInCallback,300);
     }
-    // window.vue_instance.$root.$data.userInfo.isGuest = window.G_firebase_auth.IV_is_guest;
-    // window.vue_instance.$root.$data.userInfo.authenticated = window.G_firebase_auth.IV_token_received;
+    window.vue_instance.$root.$data.userInfo.isGuest = window.G_firebase_auth.IV_is_guest;
+    window.vue_instance.$root.$data.userInfo.authenticated = window.G_firebase_auth.IV_token_received;
 
     window.G_firebase_data.setFirebaseParams(
       window.firebase.database(),
@@ -36,7 +38,33 @@ class bi8_vue_data_connectors {
       window.G_firebase_auth.bi5FirebaseGuestFlagProperty
     );
 
-    window.G_firebase_data.InitUserInfoListener();
+    //refresh user info
+    if(!window.G_firebase_auth.IV_is_guest) {
+      // checkIfUserExists(window.window.G_firebase_auth.IV_email_address).then(
+      //   function(){},
+      //   function() {
+        // let first_name = "";
+        // let last_name = ""
+          // if (window.G_firebase_auth.IV_form_full_name) {
+            // if (window.G_firebase_auth.IV_form_full_name.indexOf(" ") > 0) {
+            //   first_name = window.G_firebase_auth.IV_form_full_name.split(" ")[0];
+            //   last_name = window.G_firebase_auth.IV_form_full_name.split(" ")[1];
+            // } else {
+            //   first_name = window.G_firebase_auth.IV_form_full_name;
+            //   last_name = " ";
+            // }
+          // }
+      //     createUser(
+      //       window.G_firebase_auth.IV_email_address,
+      //       window.G_firebase_auth.IV_id_token,
+      //       first_name,
+      //       last_name,
+      //       window.G_firebase_auth.IV_form_phone_number
+      //     ); 
+      //   }
+      // );
+    }
+    window.G_watchdog_data.InitUserInfoListener();
   }
 
   static bi8SignOutCallback() {

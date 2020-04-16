@@ -4,7 +4,7 @@ import { RC, CR, AJRS } from '../../base_i2_success_codes'
 import base_i3_log from '../../base_i3_logging'
 import { ajax } from 'noquery-ajax'
 
-function getUserProfile(firebase_email, firebase_token, requesting_user_uid, phone_number, user_uid) {
+function getUserProfile(firebase_email, firebase_token, requesting_user_uid, user_uid, phone_number="") {
   return new Promise(function (resolve, reject) {
     var return_msg = "";
     var debug_data = [];

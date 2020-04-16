@@ -15,8 +15,8 @@ class bi5_firebase {
     CI.IV_last_name = "";
 
     // Will be used to create new user in firebase if not already exists.
-    CI.IV_form_full_name = null;
-    CI.IV_form_phone_number = null;
+    CI.IV_form_full_name = "";
+    CI.IV_form_phone_number = "";
     
     CI.IV_emailVerified = false;
     CI.IV_photoURL = "";

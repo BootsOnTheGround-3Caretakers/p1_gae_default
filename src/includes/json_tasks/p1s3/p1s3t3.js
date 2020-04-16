@@ -4,7 +4,7 @@ import { RC, CR, AJRS } from '../../base_i2_success_codes'
 import base_i3_log from '../../base_i3_logging'
 import { ajax } from 'noquery-ajax'
 
-function createUser(first_name, last_name, phone_number) {
+function createUser(firebase_email, firebase_token, first_name, last_name, phone_number) {
   return new Promise(function (resolve, reject) {
     var return_msg = "";
     var debug_data = [];
@@ -13,6 +13,10 @@ function createUser(first_name, last_name, phone_number) {
     var response_data = {};
 
     ///// input validation
+    call_result = bi1_data_validation.is_email_address(firebase_email);
+    debug_data.push(call_result);
+    call_result = bi1_data_validation.is_string(firebase_token);
+    debug_data.push(call_result);
     call_result = bi1_data_validation.is_string(first_name);
     debug_data.push(call_result);
     call_result = bi1_data_validation.is_string(last_name);
@@ -37,9 +41,11 @@ function createUser(first_name, last_name, phone_number) {
     /////</end> input validation
 
     ajax({
-      url: window.G_ajax_test_domain + '/s3/p1s3t3-create-user',
+      url: 'https://p1s3-web-requests-dot-aqueous-choir-160420.appspot.com/p1s3t3-create-user',
       method: 'POST',
       data: {
+        'p1s3_firebase_email': firebase_email,
+        'p1s3_token': firebase_token,
         'p1s3t3_first_name': first_name,
         'p1s3t3_last_name': last_name,
         'p1s3t3_phone_number': phone_number

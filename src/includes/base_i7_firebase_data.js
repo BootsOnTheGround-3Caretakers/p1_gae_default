@@ -4,6 +4,7 @@ import bi1_data_validation from './base_i1_datavalidation'
 import base_i3_log from './base_i3_logging'
 // import { ajax } from 'noquery-ajax';
 // import bi6_misc from './base_i6_misc_functions'
+import getUserProfile from './json_tasks/p1s5/p1s5t1'
 import Vue from 'vue'
 // import moment from 'moment';
 
@@ -26,7 +27,14 @@ class bi7_watchdog_firebase {
     // User INFO IVs
     CI.IV_users_contact_email = {};
     CI.IV_listener_user_info = {};
-    CI.IV_user_info = { 'uid': 0, 'contact_email': '', 'first_name': '', 'last_name': '','web_uid' :'' };
+    CI.IV_user_info = { 
+      'user_uid': 0, 
+      'email_address': '', 
+      'first_name': '', 
+      'last_name': '',
+      'web_uid' : '',
+      'last_updated': ''
+    };
 
     // Global Callbacks Related IVs
     CI.IV_data_change_callbacks = {'IV_user_info': null};
@@ -134,9 +142,9 @@ class bi7_watchdog_firebase {
     CI.IV_firebase_guest_flag_pointer = guest_flag;
     
     if (guest_flag === true) {
-      CI.IV_user_folder_path = '/user/guest';
+      CI.IV_user_folder_path = '/users/guest';
     } else {
-      CI.IV_user_folder_path = '/user/' + firebase_uid;
+      CI.IV_user_folder_path = '/users/' + firebase_uid;
     }
 
     CI.IV_firebase_db_object = firebase_db_object;
@@ -277,7 +285,7 @@ class bi7_watchdog_firebase {
       return { 'success': RC.input_validation_failed, 'return_msg': return_msg, 'debug_data': debug_data };
     }
 
-    var listener_location = CI.IV_user_folder_path +  '/meta_data';
+    var listener_location = CI.IV_user_folder_path;
     CI.IV_listener_user_info['info'] = CI.IV_firebase_db_object.ref(listener_location);
 
     ///// removing invalid firebase listener key
@@ -291,21 +299,11 @@ class bi7_watchdog_firebase {
     }
     ///// </end> removing invalid firebase listener key
 
-    // CI.IV_listener_user_info['info'].on("value",CI.UserInfoListener.bind(CI),
-    // function (errorObject) {
-    //   return_msg += "firebase read failed with error data:" + errorObject;
-    //   base_i3_log(G_username, G_ip, G_page_id, task_id, RC.firebase_failure, return_msg, debug_data);
-    // }.bind(CI));
-
-
-    // TODO- For now setting firebase information until p1s5t3 call is not operational
-    CI.IV_user_info['first_name'] = window.G_firebase_auth.IV_first_name;
-    CI.IV_user_info['last_name'] = window.G_firebase_auth.IV_last_name;
-    CI.IV_user_info['contact_email'] = window.G_firebase_auth.IV_email_address;
-    CI.IV_user_info['uid'] = window.G_firebase_auth.IV_uid;
-    
-    CI.callCallBackFunction(CI.IV_data_change_callbacks['IV_user_info']);
-    //</end> TODO- For now setting firebase information until p1s5t3 call is not operational
+    CI.IV_listener_user_info['info'].on("value", CI.UserInfoListener.bind(CI),
+    function (errorObject) {
+      return_msg += "firebase read failed with error data:" + errorObject;
+      base_i3_log(G_username, G_ip, G_page_id, task_id, RC.firebase_failure, return_msg, debug_data);
+    }.bind(CI));
 
     return { 'success': RC.success, 'return_msg': return_msg, 'debug_data': debug_data };
   }
@@ -329,12 +327,48 @@ class bi7_watchdog_firebase {
 
     for (var field in firebase_data) {
       if (field in CI.IV_user_info) {
+        if (field === "user_uid") {
+          CI.bi7getUsersProfileData(firebase_data[field]);
+        }
         CI.IV_user_info[field] = firebase_data[field];
-        CI.IV_user_folder_valid[field] = true;
       }
     }
 
     CI.callCallBackFunction(CI.IV_data_change_callbacks['IV_user_info']);
+    return { 'success': RC.success, 'return_msg': return_msg, 'debug_data': debug_data };
+  }
+
+  bi7getUsersProfileData(user_uid) {
+    var debug_data = [];
+    var call_result = {};
+    var return_msg = "bi7_watchdog_firebase:bi7getUsersProfileData ";
+    var task_id = "bi7_watchdog_firebase:bi7getUsersProfileData";
+    var CI = this;
+
+    //// input validation 
+    call_result = bi1_data_validation.is_string(user_uid);
+    debug_data.push(call_result);
+    if (call_result[CR.success] !== RC.success) {
+      return_msg += "input validation failed";
+      base_i3_log(G_username, G_ip, G_page_id, task_id, RC.input_validation_failed, return_msg, debug_data);
+      return { 'success': call_result[CR.success], 'return_msg': return_msg, 'debug_data': debug_data };
+    }
+    ////</end> input validation 
+
+    getUserProfile(
+      window.G_firebase_auth.IV_email_address,
+      window.G_firebase_auth.IV_id_token,
+      user_uid,
+      user_uid
+    ).then(function(response) {
+      CI.IV_user_profile = response.data;
+    },
+    function(error) {
+      return_msg += "failed to fetch user's profile for user_uid" + user_uid;
+      base_i3_log(G_username, G_ip, G_page_id, task_id, RC.ajax_failure, return_msg, debug_data);
+      return { 'success': RC.ajax_failure, 'return_msg': return_msg, 'debug_data': debug_data };
+    });
+    
     return { 'success': RC.success, 'return_msg': return_msg, 'debug_data': debug_data };
   }
 

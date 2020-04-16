@@ -11,16 +11,9 @@ class bi8_vue_data_connectors {
   static bi8SetVueUserInfoSuccess() {
     window.vue_instance.$root.$data.userInfo.firstName = window.G_firebase_data.IV_user_info['first_name']
     window.vue_instance.$root.$data.userInfo.lastName = window.G_firebase_data.IV_user_info['last_name']
-    window.vue_instance.$root.$data.userInfo.contactEmail =  window.G_firebase_data.IV_user_info['contact_email']
-    window.vue_instance.$root.$data.userInfo.uid = window.G_firebase_data.IV_user_info['uid']
+    window.vue_instance.$root.$data.userInfo.contactEmail =  window.G_firebase_data.IV_user_info['email_address']
+    window.vue_instance.$root.$data.userInfo.uid = window.G_firebase_data.IV_user_info['user_uid']
     window.vue_instance.$root.$data.firebaseData.firebaseDbConnected = true;
-    
-    // if (window.vue_instance.$root.$data.userInfo.uid !== window.G_firebase_data.IV_user_info['uid']) {
-    //   window.G_firebase_data.InitOrgListeners()
-    //   window.G_firebase_data.bi7initRulesListener()
-    //   window.G_firebase_data.bi7initNotificationRuleJoinsListener()
-    //   window.G_firebase_data.bi7InitAccountNotificationsListener()
-    // }
   }
 
   static bi8SignInCallback() {
@@ -40,31 +33,37 @@ class bi8_vue_data_connectors {
 
     //refresh user info
     if(!window.G_firebase_auth.IV_is_guest) {
-      // checkIfUserExists(window.window.G_firebase_auth.IV_email_address).then(
-      //   function(){},
-      //   function() {
-        // let first_name = "";
-        // let last_name = ""
-          // if (window.G_firebase_auth.IV_form_full_name) {
-            // if (window.G_firebase_auth.IV_form_full_name.indexOf(" ") > 0) {
-            //   first_name = window.G_firebase_auth.IV_form_full_name.split(" ")[0];
-            //   last_name = window.G_firebase_auth.IV_form_full_name.split(" ")[1];
-            // } else {
-            //   first_name = window.G_firebase_auth.IV_form_full_name;
-            //   last_name = " ";
-            // }
-          // }
-      //     createUser(
-      //       window.G_firebase_auth.IV_email_address,
-      //       window.G_firebase_auth.IV_id_token,
-      //       first_name,
-      //       last_name,
-      //       window.G_firebase_auth.IV_form_phone_number
-      //     ); 
-      //   }
-      // );
+      checkIfUserExists(
+        window.G_firebase_auth.IV_email_address,
+        window.G_firebase_auth.IV_id_token,
+        window.G_firebase_auth.IV_email_address
+      ).then(
+        function(){
+          // user is already created in firebase we'll do nothing here.
+        },
+        function(error) {
+        var first_name = "";
+        var last_name = ""
+          if (window.G_firebase_auth.IV_form_full_name) {
+            if (window.G_firebase_auth.IV_form_full_name.indexOf(" ") > 0) {
+              first_name = window.G_firebase_auth.IV_form_full_name.split(" ")[0];
+              last_name = window.G_firebase_auth.IV_form_full_name.split(" ")[1];
+            } else {
+              first_name = window.G_firebase_auth.IV_form_full_name;
+              last_name = " ";
+            }
+          }
+          createUser(
+            window.G_firebase_auth.IV_email_address,
+            window.G_firebase_auth.IV_id_token,
+            first_name,
+            last_name,
+            window.G_firebase_auth.IV_form_phone_number
+          ); 
+        }
+      );
     }
-    window.G_watchdog_data.InitUserInfoListener();
+    window.G_firebase_data.InitUserInfoListener();
   }
 
   static bi8SignOutCallback() {

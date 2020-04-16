@@ -35,7 +35,6 @@ function checkIfUserExists(firebase_email, firebase_token, user_email=null, phon
         break;
       }
     }
-
     if (validation_failed_flag === true) {
       return_msg += "input validation failed";
       base_i3_log(G_username, G_ip, G_page_id, task_id, RC.input_validation_failed, return_msg, debug_data);
@@ -49,8 +48,8 @@ function checkIfUserExists(firebase_email, firebase_token, user_email=null, phon
       data: {
         'p1s5_firebase_email': firebase_email,
         'p1s5_token': firebase_token,
-        'p1s3t3_email_address': user_email,
-        'p1s3t1_phone_number': phone_number
+        'p1s5t3_email_address': user_email,
+        'p1s5t3_phone_number': phone_number
       },
       success: function (result) {
         response_data = result;

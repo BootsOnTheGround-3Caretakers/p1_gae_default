@@ -64,7 +64,7 @@ class bi7_watchdog_firebase {
     CI.IV_location_lookup_data = {};
     CI.IV_clusters_last_updated = {};
     CI.IV_clusters_meta_data = {};
-    CI.IV_user_profile = {};
+    CI.IV_user_profile = {'profile': {}};
 
     // Function calls needs to call on page load
     CI.bi7initNeedsLastUpdatedGlobalListener();

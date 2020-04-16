@@ -8,9 +8,10 @@ import VueAWN from "vue-awesome-notifications"
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import VModal from 'vue-js-modal'
+import string from './includes/base_i6_misc_functions.js'
 
 Vue.use(VModal);
-
+Vue.use(string);
 Vue.config.productionTip = false
 let options = {maxNotifications: 1 ,position: 'top-right'}
 Vue.use(VueAWN, options)
@@ -36,7 +37,8 @@ window.vue_instance = new Vue({
       needsMetaData: {},
       skillsMetaData: {},
       hashtagsMetaData: {},
-      firebaseDbConnected: false
+      firebaseDbConnected: false,
+      userProfileInfo: {'profile': {}}
     }
   },
   router
@@ -49,6 +51,7 @@ window.G_firebase_data.IV_hashtags_last_updated = window.vue_instance.$data.fire
 window.G_firebase_data.IV_needs_meta_data = window.vue_instance.$data.firebaseData.needsMetaData
 window.G_firebase_data.IV_skills_meta_data = window.vue_instance.$data.firebaseData.skillsMetaData
 window.G_firebase_data.IV_hashtags_meta_data = window.vue_instance.$data.firebaseData.hashtagsMetaData
+window.G_firebase_data.IV_user_profile = window.vue_instance.$data.firebaseData.userProfileInfo
 
 window.G_firebase_auth.bi5InitFirebase()
 console.log('main.js ran')

@@ -33,7 +33,7 @@
               {{DV_userInfo.firstName}}
             </a>
             <div class="dropdown-menu">
-              <a class="dropdown-item" href="javascript:;">Home</a>
+              <router-link v-if="!C_isGuestUser && !C_notAuthenticated" class="dropdown-item" to="/profile">Profile</router-link>
               <a class="dropdown-item" href="javascript:;">My Clusters</a>
               <router-link v-if="!C_isGuestUser && !C_notAuthenticated" class="dropdown-item" to="/admin">Admin</router-link>
               <a v-if="!C_isGuestUser && !C_notAuthenticated" class="dropdown-item" href="javascript:;" @click.stop="signOut">Logout</a>

@@ -64,6 +64,7 @@ class bi7_watchdog_firebase {
     CI.IV_location_lookup_data = {};
     CI.IV_clusters_last_updated = {};
     CI.IV_clusters_meta_data = {};
+    CI.IV_user_profile = {};
 
     // Function calls needs to call on page load
     CI.bi7initNeedsLastUpdatedGlobalListener();
@@ -361,14 +362,14 @@ class bi7_watchdog_firebase {
       user_uid,
       user_uid
     ).then(function(response) {
-      CI.IV_user_profile = response.data;
+      Vue.set(CI.IV_user_profile, 'profile', response.data);
     },
     function(error) {
       return_msg += "failed to fetch user's profile for user_uid" + user_uid;
       base_i3_log(G_username, G_ip, G_page_id, task_id, RC.ajax_failure, return_msg, debug_data);
       return { 'success': RC.ajax_failure, 'return_msg': return_msg, 'debug_data': debug_data };
     });
-    
+
     return { 'success': RC.success, 'return_msg': return_msg, 'debug_data': debug_data };
   }
 

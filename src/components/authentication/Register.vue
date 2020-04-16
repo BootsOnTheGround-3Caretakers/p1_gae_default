@@ -91,7 +91,8 @@ export default {
         create_user_failed: this.createUserFailed
       });
       //if the user is already signed in skip the login screen
-      if (window.G_firebase_auth.IV_email_address !== "") {
+      if (window.G_firebase_auth.IV_email_address !== "" && 
+          window.G_firebase_auth.IV_is_guest !== false) {
         this.signedInCallback();
         return;
       }
@@ -106,6 +107,7 @@ export default {
       window.G_firebase_auth.bi5CreateUser(this.form.email, this.form.password)
     },
     signedInCallback: function() {
+       if (window.G_firebase_auth.IV_is_guest === true) {return;}
       this.$router.replace("/");
     },
     createUserFailed: function(error) {

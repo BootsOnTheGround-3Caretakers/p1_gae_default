@@ -20,12 +20,13 @@
     "bootstrap": "^4.4.1",
     "firebase": "^7.12.0",
     "jquery": "^3.4.1",
+    "noquery-ajax": "^1.1.0",
     "popper.js": "^1.16.1",
     "vue": "^2.5.2",
-    "vue-router": "^3.0.1",
     "vue-awesome-notifications": "^2.2.9",
-    "noquery-ajax": "^1.1.0",
     "vue-js-modal": "^1.3.31",
+    "vue-multiselect": "^2.1.6",
+    "vue-router": "^3.0.1",
     "vue-spinner": "^1.0.3"
   },
   "devDependencies": {

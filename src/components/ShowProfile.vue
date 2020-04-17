@@ -32,7 +32,7 @@
           <p class="text-muted col-6">
             {{key.labelize().replace("Uid","")}}:
           </p>
-          <p class="mb-3 col-6">{{value}}</p>
+          <p class="mb-3 col-6">{{getFormatedValue(key, value)}}</p>
         </div>
       </div>
       <div v-else>
@@ -48,17 +48,48 @@
       return {
         DV_userProfileInfoContainer: {},
         DV_profile: {},
+        DV_locationLookupData: {},
         DV_loading: true
       }
     },
     mounted() {
       this.DV_userProfileInfoContainer = window.vue_instance.$data.firebaseData.userProfileInfo;
+      this.DV_locationLookupData = window.vue_instance.$data.firebaseData.locationLookupData;
+    },
+    methods: {
+      getFormatedValue(key, value) {
+        var ret = value;
+        if (["country_uid", "region_uid", "area_uid"].includes(key)) {
+          switch(key) {
+            case "country_uid":
+              if (value in this.DV_locationLookupData === true) {
+                ret = this.DV_locationLookupData[value].name;
+              }
+              break;
+            case "region_uid":
+              try {
+                if (value in this.DV_locationLookupData[this.DV_profile.country_uid].regions === true) {
+                  ret = this.DV_locationLookupData[this.DV_profile.country_uid].regions[value].name;
+                }
+              } catch(error) {} 
+              break;
+            case "area_uid":
+              try {
+                if (value in this.DV_locationLookupData[this.DV_profile.country_uid].regions[this.DV_profile.region_uid].areas === true) {
+                  ret = this.DV_locationLookupData[this.DV_profile.country_uid].regions[this.DV_profile.region_uid].areas[value].zip;
+                }
+              } catch(error) {} 
+              break;
+          }
+        }
+        return ret;
+      }
     },
     watch: {
       DV_userProfileInfoContainer: {
         handler: function (argument) {
           if (argument['profile'] && argument['profile']['user']) {
-            this.DV_profile = argument['profile']['user']
+            this.DV_profile = Object.assign({}, argument['profile']['user']);
             this.DV_loading = false
           }
         },

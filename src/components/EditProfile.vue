@@ -51,6 +51,16 @@
           </div>
           <div class="row">
             <div class="col form-group">
+              <label>Phone 2</label>
+              <input 
+                type="text" 
+                v-model="DV_profile.phone_2"
+                class="form-control">     
+               </input>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col form-group">
               <label>Phone texts</label>
               <input 
                 type="text" 
@@ -89,6 +99,8 @@
                 v-model="DV_profile.country_uid" 
                 :options="C_countryList"  
                 placeholder="Pick Your Country"
+                track-by="name" 
+                label="name" 
               ></multiselect>
             </div>
           </div>
@@ -97,11 +109,13 @@
               <label>Region</label>
               <multiselect 
                 v-model="DV_profile.region_uid" 
-                :options="C_regionsList"  
+                :options="C_regionsList"
+                :disabled="!DV_profile.country_uid"
                 label="name" 
-                track-by="id" 
+                track-by="name" 
                 placeholder="Pick Your Region"
               ></multiselect>
+              <small v-if="!DV_profile.country_uid" class="text-info">Please select Country first</small>
             </div>
           </div>
           <div class="row">
@@ -110,10 +124,22 @@
               <multiselect 
                 v-model="DV_profile.area_uid" 
                 :options="C_areasList" 
+                :disabled="!DV_profile.region_uid"
                 label="name" 
-                track-by="id" 
+                track-by="name" 
                 :placeholder="`Pick Your Area`"
               ></multiselect>
+              <small v-if="!DV_profile.region_uid" class="text-info">Please select Region first</small>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col form-group">
+              <label>Home Address</label>
+              <input 
+                type="text" 
+                v-model="DV_profile.home_address"
+                class="form-control">     
+               </input>
             </div>
           </div>
           <div class="row">
@@ -129,11 +155,11 @@
           <div class="row">
             <div class="col form-group">
               <label>Location Cord Lat</label>
-              <input type="number" v-model="DV_profile.location_cord_lat" class="form-control">
+              <input type="tel" v-model="DV_profile.location_cord_lat" class="form-control">
             </div> 
             <div class="col form-group">
               <label>Location Cord Long</label>
-              <input type="number" v-model="DV_profile.location_cord_long" class="form-control">
+              <input type="tel" v-model="DV_profile.location_cord_long" class="form-control">
             </div> 
           </div>
 
@@ -159,53 +185,156 @@
 </template>
 
 <script>
-  export default {
-    data() {
-      return {
-        DV_userProfileInfoContainer: {},
-        DV_profile: {},
-        DV_locationLookupData: {},
-        DV_loading: true
-      }
-    },
-    mounted() {
-      this.DV_userProfileInfoContainer = window.vue_instance.$data.firebaseData.userProfileInfo;
-      this.DV_locationLookupData = window.vue_instance.$data.firebaseData.locationLookupData;
-      if (this.DV_userProfileInfoContainer['profile'] && 
-          this.DV_userProfileInfoContainer['profile']['user']) {
-        this.DV_profile = this.DV_userProfileInfoContainer['profile']['user']
-        this.DV_loading = false
-      }
-    },
-    computed: {
-      C_countryList() {
+import Multiselect from 'vue-multiselect'
+import modifyUserInformation from '../includes/json_tasks/p1s3/p1s3t4.js'
+import AWN from "awesome-notifications";
 
-      },
-      C_regionsList() {
-
-      },
-      C_areasList() {
-
+export default {
+  components: { Multiselect },
+  data() {
+    return {
+      DV_userProfileInfoContainer: {},
+      DV_profile: {},
+      DV_locationLookupData: {},
+      DV_loading: true
+    }
+  },
+  mounted() {
+    this.DV_userProfileInfoContainer = window.vue_instance.$data.firebaseData.userProfileInfo;
+    this.DV_locationLookupData = window.vue_instance.$data.firebaseData.locationLookupData;
+    if (this.DV_userProfileInfoContainer['profile'] && 
+        this.DV_userProfileInfoContainer['profile']['user']) {
+      this.DV_profile = this.DV_userProfileInfoContainer['profile']['user']
+      this.DV_loading = false
+    }
+  },
+  computed: {
+    C_countryList() {
+      let countries = [];
+      if (!this.DV_locationLookupData) {
+        return countries;
       }
-    },
-    methods: {
-      validateThenSave() {
-
-      },
-      showProfile() {
-        this.$router.push({ path: '/profile' })
+      for (let key in this.DV_locationLookupData) {
+        let item = this.DV_locationLookupData[key];
+        countries.push({name: item.name, id: key});
       }
+      return countries;
     },
-    watch: {
-      DV_userProfileInfoContainer: {
-        handler: function (argument) {
-          if (argument['profile'] && argument['profile']['user']) {
-            this.DV_profile = argument['profile']['user']
-            this.DV_loading = false
-          }
+    C_regionsList() {
+      let regions = [];
+      if (!this.C_usersCountryUid) {return regions;}
+      
+      let country_regions = this.DV_locationLookupData[this.C_usersCountryUid].regions;
+      for (let key in country_regions) {
+        let item = country_regions[key];
+        regions.push({name: item.name, id: key});
+      }
+      return regions;
+    },
+    C_areasList() {
+      let areas = [];
+
+      if (!this.C_usersCountryUid || !this.C_usersRegionUid) {
+        return areas;
+      }
+
+      let region_areas = this.DV_locationLookupData[this.C_usersCountryUid]['regions'][this.C_usersRegionUid].areas;
+      for (let key in region_areas) {
+        let item = region_areas[key];
+        areas.push({name: item.zip, id: key});
+      }
+      return areas;
+    },
+    C_usersCountryUid() {
+      if (typeof (this.DV_profile.country_uid) === 'object') {
+        return this.DV_profile.country_uid.id;
+      }
+      if (typeof (this.DV_profile.country_uid) === 'string') {
+        return this.DV_profile.country_uid;
+      }
+
+      return null;
+    },
+    C_usersRegionUid() {
+      if (typeof (this.DV_profile.region_uid) === 'object') {
+        return this.DV_profile.region_uid.id;
+      }
+      if (typeof (this.DV_profile.region_uid) === 'string') {
+        return this.DV_profile.region_uid;
+      }
+
+      return null;
+    },
+    C_usersAreaUid() {
+      if (typeof (this.DV_profile.area_uid) === 'object') {
+        return this.DV_profile.area_uid.id;
+      }
+      if (typeof (this.DV_profile.area_uid) === 'string') {
+        return this.DV_profile.area_uid;
+      }
+
+      return null;
+    }
+  },
+  methods: {
+    validateThenSave() {
+      let profile_data = {
+        user_uid: window.G_firebase_data.IV_user_info.user_uid,
+        firebase_uid: window.G_firebase_auth.IV_uid,
+        first_name: this.DV_profile.first_name,
+        last_name: this.DV_profile.last_name,
+        phone_number: this.DV_profile.phone_1,
+        phone_texts: this.DV_profile.phone_texts,
+        phone_2: this.DV_profile.phone_2,
+        home_address: this.DV_profile.home_address,
+        email_address: this.DV_profile.email_address,
+        country_uid: this.C_usersCountryUid,
+        region_uid: this.C_usersRegionUid,
+        area_uid: this.C_usersAreaUid,
+        description: this.DV_profile.description,
+        preferred_radius: this.DV_profile.preferred_radius,
+        location_cord_lat: this.DV_profile.location_cord_lat,
+        location_cord_long: this.DV_profile.location_cord_long
+      }
+      var popup_options = {
+        labels: {
+          async: "Updating your profile.",
         },
-        deep: true
-      }
+        position: "center",
+        duration: 3000,
+      };
+      let notifier = new AWN(popup_options);
+
+      var resp = modifyUserInformation(
+        window.G_firebase_auth.IV_email_address,
+        window.G_firebase_auth.IV_id_token,
+        profile_data
+      );
+
+      notifier.async(resp,
+        (res) => {
+          notifier.success(`Your profile has been updated successfully.`);
+        },
+        (error) => {
+          notifier.alert("There was an error updating your profile, Please try again later.");
+        } 
+      );
+      this.showProfile();
+    },
+    showProfile() {
+      this.$router.push({ path: '/profile' })
+    }
+  },
+  watch: {
+    DV_userProfileInfoContainer: {
+      handler: function (argument) {
+        if (argument['profile'] && argument['profile']['user']) {
+          this.DV_profile = Object.assign({}, argument['profile']['user']);
+          this.DV_loading = false
+        }
+      },
+      deep: true
     }
   }
+}
 </script>

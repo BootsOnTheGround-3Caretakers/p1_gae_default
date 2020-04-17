@@ -21,7 +21,7 @@
     </div>
     <hr>
     <h2 class="t_l ml-2 float-left">Profile Info</h2>
-    <button class="btn btn-primary mb-2 float-right">Edit</button>
+    <router-link to="/profile/edit" class="btn btn-primary mb-2 float-right">Edit</router-link>
     <div class="box_shadow box_inner p_3 radius_5 mh_vh_5 of_s">
       <div v-if="!DV_loading" class="box_inner t_l">
         <div 
@@ -30,7 +30,7 @@
           :key="index" 
         >
           <p class="text-muted col-6">
-            {{key.labelize()}}:
+            {{key.labelize().replace("Uid","")}}:
           </p>
           <p class="mb-3 col-6">{{value}}</p>
         </div>

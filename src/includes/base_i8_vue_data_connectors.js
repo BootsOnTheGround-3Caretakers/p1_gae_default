@@ -38,12 +38,12 @@ class bi8_vue_data_connectors {
         window.G_firebase_auth.IV_id_token,
         window.G_firebase_auth.IV_email_address
       ).then(
-        function(){
+        function() {
           // user is already created in firebase we'll do nothing here.
         },
         function(error) {
-        var first_name = "";
-        var last_name = ""
+          var first_name = "";
+          var last_name = ""
           if (window.G_firebase_auth.IV_form_full_name) {
             if (window.G_firebase_auth.IV_form_full_name.indexOf(" ") > 0) {
               first_name = window.G_firebase_auth.IV_form_full_name.split(" ")[0];

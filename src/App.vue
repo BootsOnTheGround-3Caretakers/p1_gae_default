@@ -2,7 +2,7 @@
   <div id="app" v-if="loading === false">
     <Header></Header>
     <router-view/>
-    <Footer></Footer>
+    <!-- <Footer></Footer> -->
   </div>
 </template>
 

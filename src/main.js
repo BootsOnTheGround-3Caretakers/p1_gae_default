@@ -38,7 +38,8 @@ window.vue_instance = new Vue({
       skillsMetaData: {},
       hashtagsMetaData: {},
       firebaseDbConnected: false,
-      userProfileInfo: {'profile': {}}
+      userProfileInfo: {'profile': {}},
+      locationLookupData: {}
     }
   },
   router
@@ -52,6 +53,7 @@ window.G_firebase_data.IV_needs_meta_data = window.vue_instance.$data.firebaseDa
 window.G_firebase_data.IV_skills_meta_data = window.vue_instance.$data.firebaseData.skillsMetaData
 window.G_firebase_data.IV_hashtags_meta_data = window.vue_instance.$data.firebaseData.hashtagsMetaData
 window.G_firebase_data.IV_user_profile = window.vue_instance.$data.firebaseData.userProfileInfo
+window.G_firebase_data.IV_location_lookup_data = window.vue_instance.$data.firebaseData.locationLookupData
 
 window.G_firebase_auth.bi5InitFirebase()
 console.log('main.js ran')

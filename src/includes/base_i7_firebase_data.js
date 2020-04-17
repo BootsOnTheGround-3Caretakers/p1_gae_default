@@ -2,11 +2,8 @@
 import { CR, RC, AJRS } from './base_i2_success_codes'
 import bi1_data_validation from './base_i1_datavalidation'
 import base_i3_log from './base_i3_logging'
-// import { ajax } from 'noquery-ajax';
-// import bi6_misc from './base_i6_misc_functions'
 import getUserProfile from './json_tasks/p1s5/p1s5t1'
 import Vue from 'vue'
-// import moment from 'moment';
 
 // CI == class instance
 // IV == instance variable
@@ -362,7 +359,7 @@ class bi7_watchdog_firebase {
       user_uid,
       user_uid
     ).then(function(response) {
-      Vue.set(CI.IV_user_profile, 'profile', response.data);
+      Vue.set(CI.IV_user_profile, 'profile', response.response_data);
     },
     function(error) {
       return_msg += "failed to fetch user's profile for user_uid" + user_uid;

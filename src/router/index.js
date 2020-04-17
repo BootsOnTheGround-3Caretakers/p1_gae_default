@@ -3,6 +3,7 @@ import Router from 'vue-router'
 import p1Home from '@/components/p1Home'
 import AdminPage from '@/components/AdminPage'
 import ShowProfile from '@/components/ShowProfile'
+import EditProfile from '@/components/EditProfile'
 import p5PeopleList from '@/components/p5PeopleList'
 import Login from '@/components/authentication/Login'
 import Register from '@/components/authentication/Register'
@@ -34,6 +35,11 @@ export default new Router({
       path: '/profile',
       name: 'ShowProfile',
       component: ShowProfile
+    },
+    {
+      path: '/profile/edit',
+      name: 'EditProfile',
+      component: EditProfile
     },
     {
       path: '/',

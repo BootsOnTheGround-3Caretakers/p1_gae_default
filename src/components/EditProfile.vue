@@ -96,11 +96,10 @@
             <div class="col form-group">
               <label>Country</label>
               <multiselect 
-                v-model="DV_profile.country_uid" 
+                v-model="DV_selectedCountry" 
                 :options="C_countryList"  
                 placeholder="Pick Your Country"
-                track-by="name" 
-                label="name" 
+                @input="updateCountryUid"
               ></multiselect>
             </div>
           </div>
@@ -108,28 +107,26 @@
             <div class="col form-group">
               <label>Region</label>
               <multiselect 
-                v-model="DV_profile.region_uid" 
+                v-model="DV_selectedRegion" 
                 :options="C_regionsList"
-                :disabled="!DV_profile.country_uid"
-                label="name" 
-                track-by="name" 
+                :disabled="!DV_selectedCountry"
+                @input="updateRegionUid"
                 placeholder="Pick Your Region"
               ></multiselect>
-              <small v-if="!DV_profile.country_uid" class="text-info">Please select Country first</small>
+              <small v-if="!DV_selectedCountry" class="text-info">Please select Country first</small>
             </div>
           </div>
           <div class="row">
             <div class="col form-group">
               <label>Area</label>
               <multiselect 
-                v-model="DV_profile.area_uid" 
+                v-model="DV_selectedArea" 
                 :options="C_areasList" 
-                :disabled="!DV_profile.region_uid"
-                label="name" 
-                track-by="name" 
+                @input="updateAreaUid"
+                :disabled="!DV_selectedRegion"
                 :placeholder="`Pick Your Area`"
               ></multiselect>
-              <small v-if="!DV_profile.region_uid" class="text-info">Please select Region first</small>
+              <small v-if="!DV_selectedRegion" class="text-info">Please select Region first</small>
             </div>
           </div>
           <div class="row">
@@ -196,7 +193,10 @@ export default {
       DV_userProfileInfoContainer: {},
       DV_profile: {},
       DV_locationLookupData: {},
-      DV_loading: true
+      DV_loading: true,
+      DV_selectedCountry: null,
+      DV_selectedRegion: null,
+      DV_selectedArea: null,
     }
   },
   mounted() {
@@ -207,6 +207,7 @@ export default {
       this.DV_profile = this.DV_userProfileInfoContainer['profile']['user']
       this.DV_loading = false
     }
+    this.updatedLocationNames();
   },
   computed: {
     C_countryList() {
@@ -216,64 +217,44 @@ export default {
       }
       for (let key in this.DV_locationLookupData) {
         let item = this.DV_locationLookupData[key];
-        countries.push({name: item.name, id: key});
+        countries.push(item.name);
       }
       return countries;
     },
     C_regionsList() {
       let regions = [];
-      if (!this.C_usersCountryUid) {return regions;}
-      
-      let country_regions = this.DV_locationLookupData[this.C_usersCountryUid].regions;
+      let country_regions = [];
+      if (!this.DV_profile.country_uid) {return regions;}
+
+      try {
+        country_regions = this.DV_locationLookupData[this.DV_profile.country_uid].regions;
+      } catch(error) {
+        country_regions = [];
+      }
+
       for (let key in country_regions) {
         let item = country_regions[key];
-        regions.push({name: item.name, id: key});
+        regions.push(item.name);
       }
       return regions;
     },
     C_areasList() {
       let areas = [];
+      let region_areas = [];
 
-      if (!this.C_usersCountryUid || !this.C_usersRegionUid) {
+      if (!this.DV_profile.country_uid || !this.DV_profile.region_uid) {
         return areas;
       }
-
-      let region_areas = this.DV_locationLookupData[this.C_usersCountryUid]['regions'][this.C_usersRegionUid].areas;
+      try {
+        region_areas = this.DV_locationLookupData[this.DV_profile.country_uid]['regions'][this.DV_profile.region_uid].areas;
+      } catch(error) {
+        region_areas = [];
+      }
       for (let key in region_areas) {
         let item = region_areas[key];
-        areas.push({name: item.zip, id: key});
+        areas.push(item.zip);
       }
       return areas;
-    },
-    C_usersCountryUid() {
-      if (typeof (this.DV_profile.country_uid) === 'object') {
-        return this.DV_profile.country_uid.id;
-      }
-      if (typeof (this.DV_profile.country_uid) === 'string') {
-        return this.DV_profile.country_uid;
-      }
-
-      return null;
-    },
-    C_usersRegionUid() {
-      if (typeof (this.DV_profile.region_uid) === 'object') {
-        return this.DV_profile.region_uid.id;
-      }
-      if (typeof (this.DV_profile.region_uid) === 'string') {
-        return this.DV_profile.region_uid;
-      }
-
-      return null;
-    },
-    C_usersAreaUid() {
-      if (typeof (this.DV_profile.area_uid) === 'object') {
-        return this.DV_profile.area_uid.id;
-      }
-      if (typeof (this.DV_profile.area_uid) === 'string') {
-        return this.DV_profile.area_uid;
-      }
-
-      return null;
     }
   },
   methods: {
@@ -288,11 +269,11 @@ export default {
         phone_2: this.DV_profile.phone_2,
         home_address: this.DV_profile.home_address,
         email_address: this.DV_profile.email_address,
-        country_uid: this.C_usersCountryUid,
-        region_uid: this.C_usersRegionUid,
-        area_uid: this.C_usersAreaUid,
+        country_uid: this.DV_profile.country_uid,
+        region_uid: this.DV_profile.region_uid,
+        area_uid: this.DV_profile.area_uid,
         description: this.DV_profile.description,
-        preferred_radius: this.DV_profile.preferred_radius,
+        preferred_radius: this.DV_profile.preferred_radius.toString(),
         location_cord_lat: this.DV_profile.location_cord_lat,
         location_cord_long: this.DV_profile.location_cord_long
       }
@@ -323,15 +304,91 @@ export default {
     },
     showProfile() {
       this.$router.push({ path: '/profile' })
+    },
+    updatedLocationNames() {
+      if (this.DV_profile.country_uid)  {
+        let name = null;
+        try {
+          name = this.DV_locationLookupData[this.DV_profile.country_uid].name;
+        } catch(error) { name = null;}
+
+        this.DV_selectedCountry = name;
+      }
+      if (this.DV_profile.country_uid && this.DV_profile.region_uid) {
+        let name = null;
+        try {
+          name = this.DV_locationLookupData[this.DV_profile.country_uid].regions[this.DV_profile.region_uid].name;
+        } catch(error) { name = null;}
+
+        this.DV_selectedRegion = name;
+      }
+      if (this.DV_profile.country_uid && this.DV_profile.region_uid && this.DV_profile.region_uid) {
+        let name = null;
+        try {
+          name = this.DV_locationLookupData[this.DV_profile.country_uid].regions[this.DV_profile.region_uid].areas[this.DV_profile.area_uid].zip;
+        } catch(error) { name = null;}
+
+        this.DV_selectedArea = name;
+      }
+    },
+    updateCountryUid(value) {
+      for (let key in this.DV_locationLookupData) {
+        let country = this.DV_locationLookupData[key];
+        if (country.name === value) {
+          this.DV_profile.country_uid = key;
+          this.DV_profile.region_uid = "";
+          this.DV_profile.area_uid = "";
+
+          this.DV_selectedRegion = null;
+          this.DV_selectedArea = null;
+          break;
+        }
+      }
+    },
+    updateRegionUid(value) {
+      if (!this.DV_profile.country_uid) {return;}
+
+      let country_regions = this.DV_locationLookupData[this.DV_profile.country_uid].regions;
+
+      for (let key in country_regions) {
+        let region = country_regions[key];
+        if (region.name === value) {
+          this.DV_profile.region_uid = key;
+          this.DV_profile.area_uid = "";
+
+          this.DV_selectedArea = null;
+          break;
+        }
+      }
+    },
+    updateAreaUid(value) {
+      if (!this.DV_profile.country_uid || !this.DV_profile.region_uid) {return;}
+
+      let region_areas = this.DV_locationLookupData[this.DV_profile.country_uid].regions[this.DV_profile.region_uid].areas;
+
+      for (let key in region_areas) {
+        let area = region_areas[key];
+        if (area.zip === value) {
+          this.DV_profile.area_uid = key;
+          break;
+        }
+      }
     }
   },
   watch: {
     DV_userProfileInfoContainer: {
       handler: function (argument) {
+        this.updatedLocationNames();
         if (argument['profile'] && argument['profile']['user']) {
           this.DV_profile = Object.assign({}, argument['profile']['user']);
           this.DV_loading = false
         }
+      },
+      deep: true
+    },
+    DV_locationLookupData: {
+      handler: function (argument) {
+        this.updatedLocationNames();
       },
       deep: true
     }

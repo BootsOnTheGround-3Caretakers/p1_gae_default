@@ -323,6 +323,12 @@ class bi7_watchdog_firebase {
     var CI = this;
     var firebase_data = data.val();
 
+    if (firebase_data['last_updated'] && CI.IV_user_info['last_updated']) {
+      if (firebase_data['last_updated'] === CI.IV_user_info['last_updated']) {
+        return;
+      }
+    }
+
     for (var field in firebase_data) {
       if (field in CI.IV_user_info) {
         if (field === "user_uid") {
@@ -359,6 +365,12 @@ class bi7_watchdog_firebase {
       user_uid,
       user_uid
     ).then(function(response) {
+      // Sometime server response with invalid JSON string
+      if (typeof(response.response_data) === 'string') {
+        return_msg += "Got InValid json response from server" + response.response_data;
+        base_i3_log(G_username, G_ip, G_page_id, task_id, RC.ajax_failure, return_msg, debug_data);
+        return { 'success': RC.ajax_failure, 'return_msg': return_msg, 'debug_data': debug_data };
+      }
       Vue.set(CI.IV_user_profile, 'profile', response.response_data);
     },
     function(error) {

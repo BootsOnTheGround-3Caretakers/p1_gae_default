@@ -40,28 +40,16 @@ function modifyUserInformation(firebase_email, firebase_token, user_information)
       let key = optional_keys[index];
 
       if (key in user_information === true && user_information[key] !== undefined) {
-        call_result = bi1_data_validation.is_string(user_information[key]);
-        debug_data.push(call_result);
+        if (key !== "preferred_radius") {
+          call_result = bi1_data_validation.is_string(user_information[key]);
+          debug_data.push(call_result);
+        }
       } else {
         user_information[key] = null;
       }
     }
 
     ///// validation of semi-optional attributes
-    if ('location_cord_lat' in user_information === true && user_information['location_cord_lat'] !== undefined) {
-      call_result = bi1_data_validation.is_string(user_information['location_cord_lat'], true);
-      debug_data.push(call_result);
-    } else {
-      user_information['location_cord_lat'] = null;
-    }
-
-    if ('location_cord_long' in user_information === true && user_information['location_cord_long'] !== undefined) {
-      call_result = bi1_data_validation.is_string(user_information['location_cord_long'], true);
-      debug_data.push(call_result);
-    } else {
-      user_information['location_cord_long'] = null;
-    }
-
     if ('firebase_uid' in user_information === true && user_information['firebase_uid'] !== undefined) {
       call_result = bi1_data_validation.is_string(user_information['firebase_uid']);
       debug_data.push(call_result);

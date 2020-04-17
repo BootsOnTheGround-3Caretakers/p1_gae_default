@@ -273,7 +273,7 @@ export default {
         region_uid: this.DV_profile.region_uid,
         area_uid: this.DV_profile.area_uid,
         description: this.DV_profile.description,
-        preferred_radius: this.DV_profile.preferred_radius.toString(),
+        preferred_radius: this.DV_profile.preferred_radius,
         location_cord_lat: this.DV_profile.location_cord_lat,
         location_cord_long: this.DV_profile.location_cord_long
       }

@@ -4,7 +4,7 @@ import { RC, CR, AJRS } from '../../base_i2_success_codes'
 import base_i3_log from '../../base_i3_logging'
 import { ajax } from 'noquery-ajax'
 
-function createNeederRequest(user_uid) {
+function createNeederRequest(firebase_email, firebase_token, user_uid) {
   return new Promise(function (resolve, reject) {
     var return_msg = "";
     var debug_data = [];
@@ -13,8 +13,12 @@ function createNeederRequest(user_uid) {
     var response_data = {};
 
     ///// input validation
-    call_result = bi1_data_validation.is_user_uid(user_uid);
+    call_result = bi1_data_validation.is_email_address(firebase_email);
     debug_data.push(call_result);
+    call_result = bi1_data_validation.is_string(firebase_token);
+    debug_data.push(call_result);
+    // call_result = bi1_data_validation.is_user_uid(user_uid);
+    // debug_data.push(call_result);
 
 
     if (call_result[CR.success] !== RC.success) {
@@ -26,9 +30,11 @@ function createNeederRequest(user_uid) {
     /////</end> input validation
 
     ajax({
-      url: window.G_ajax_test_domain + '/s3/p1s3t12-create-neederRequest',
+      url: 'https://p1s3-web-requests-dot-aqueous-choir-160420.appspot.com/p1s3t12-create-needer-request',
       method: 'POST',
       data: {
+        'p1s3_firebase_email': firebase_email,
+        'p1s3_token': firebase_token,
         'p1s3t12_user_uid': user_uid
       },
       success: function (result) {

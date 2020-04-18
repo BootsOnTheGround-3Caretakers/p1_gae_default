@@ -4,7 +4,7 @@ import { RC, CR, AJRS } from '../../base_i2_success_codes'
 import base_i3_log from '../../base_i3_logging'
 import { ajax } from 'noquery-ajax'
 
-function assignNeedToNeeder(need_uid, needer_uid, user_uid, special_requests=null) {
+function assignNeedToNeeder(firebase_email, firebase_token, user_uid, needer_uid, need_uid, special_requests=null) {
   return new Promise(function (resolve, reject) {
     var return_msg = "";
     var debug_data = [];
@@ -13,11 +13,14 @@ function assignNeedToNeeder(need_uid, needer_uid, user_uid, special_requests=nul
     var response_data = {};
 
     ///// input validation
-    call_result = bi1_data_validation.is_user_uid(user_uid);
+    call_result = bi1_data_validation.is_email_address(firebase_email);
+    debug_data.push(call_result);
+    call_result = bi1_data_validation.is_string(firebase_token);
     debug_data.push(call_result);
 
     // TODO- Confirm format and add functions to base_i1_datavalidation
-    
+    // call_result = bi1_data_validation.is_user_uid(user_uid);
+    // debug_data.push(call_result);
     // call_result = bi1_data_validation.is_need_uid(need_uid);
     // debug_data.push(call_result);
     // call_result = bi1_data_validation.is_needer_uid(needer_uid);
@@ -45,13 +48,15 @@ function assignNeedToNeeder(need_uid, needer_uid, user_uid, special_requests=nul
     /////</end> input validation
 
     ajax({
-      url: window.G_ajax_test_domain + '/s3/p1s3t2-assign-need-to-needer',
+      url: 'https://p1s3-web-requests-dot-aqueous-choir-160420.appspot.com/p1s3t2-assign-need-to-needer',
       method: 'POST',
       data: {
+        'p1s3_firebase_email': firebase_email,
+        'p1s3_token': firebase_token,
         'p1s3t2_need_uid': need_uid,
         'p1s3t2_needer_uid': needer_uid,
-        'user_uid': user_uid,
-        'special_requests': special_requests
+        'p1s3t2_user_uid': user_uid,
+        'p1s3t2_special_requests': special_requests
       },
       success: function (result) {
         response_data = result;

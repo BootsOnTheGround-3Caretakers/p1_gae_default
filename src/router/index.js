@@ -27,8 +27,8 @@ export default new Router({
       component: Register
     },
     {
-      path: '/admin',
-      name: 'Admin',
+      path: '/user_admin',
+      name: 'UserAdmin',
       component: UserAdminPage
     },
     {

@@ -1,5 +1,5 @@
 <template>
-    <modal name="assignSkillModal" title="Alert Default" :height="'35%'">
+  <modal name="assignSkillModal" title="Alert Default" :height="'35%'">
     <template slot="default">
       <div class="p-5">
         <div class="h4 mb-3">Assign New Skill.</div>
@@ -14,6 +14,7 @@
                 placeholder="Pick a Skill"
                 label="name"
               ></multiselect>
+              <small class="text-danger">Selecting already selecting Skills will overwrite special notes</small>
             </div>
           </div>
           <div class="form-group row">
@@ -25,9 +26,6 @@
                 type="special_notes"
                 class="form-control"
                 name="special_notes"
-                value
-                required
-                autofocus
                 v-model="DV_specialNotes"
               />
             </div>
@@ -67,8 +65,9 @@ export default {
       if (this.DV_skills) {
         for (let key in this.DV_skills) {
           let skill = this.DV_skills[key];
-
-          skills_list.push({name: skill.name, uid: key});
+          let data = {name: skill.name, uid: key};
+          
+          skills_list.push(data);
         }
       }
 

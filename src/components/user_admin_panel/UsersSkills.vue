@@ -5,7 +5,7 @@
       <div class="col-md-12">
         <div class="d-flex justify-content-between mb-3">
           <h4>Available skills</h4>
-          <button @click.stop="openAssignSkillModal" class="btn btn-primary">Assign new Skill</button>
+          <button @click.stop="openAssignSkillModal" class="btn btn-primary">Add new Skill</button>
         </div>
         <div class="table-responsive">
           <table id="mytable" class="table table-bordred table-striped">
@@ -32,7 +32,7 @@
                 </td> -->
                 <td>
                   <p data-placement="top" title="Delete">
-                    <button @click.stop="deleteSkill" class="btn btn-danger btn-xs" >
+                    <button @click.stop="removeSkill" class="btn btn-danger btn-xs" >
                       <span class="glyphicon glyphicon-trash"></span>
                     </button>
                   </p>
@@ -43,29 +43,26 @@
         </div>
       </div>
     </div>
-    <assign-skill-modal ref="assignSkillForm" @assign-skill="assignSkill"></assign-skill-modal>
+    <add-skill-to-user-modal ref="addSkillToUserForm" @assign-skill="assignSkill"></add-skill-to-user-modal>
   </div>
 </template>
 
 <script>
-import AssignSkillModal from '../form_modals/assign_skill_modal'
+import addSkillToUserModal from '../form_modals/assign_skill_modal'
 import addSkillToUser from '../../includes/json_tasks/p1s3/p1s3t7.js'
 import AWN from "awesome-notifications";
 
 export default {
   props: ["usersSkills"],
-  components: {AssignSkillModal},
+  components: {addSkillToUserModal},
   data() {
     return {
       DV_usersSkills: {}
     }
   },
-  mounted() {
-
-  },
   methods: {
     openAssignSkillModal() {
-      this.$refs.assignSkillForm.open();
+      this.$refs.addSkillToUserForm.open();
     },
     assignSkill(skill_data) {
       var popup_options = {
@@ -76,7 +73,7 @@ export default {
         duration: 3000,
       };
       let notifier = new AWN(popup_options);
-      debugger
+
       var resp = addSkillToUser(
         window.G_firebase_auth.IV_email_address,
         window.G_firebase_auth.IV_id_token,
@@ -87,13 +84,16 @@ export default {
 
       notifier.async(resp,
         (res) => {
-          notifier.success(`Skill has been assigned successfully.`);
+          notifier.success(`Skill has been added successfully.`);
         },
         (error) => {
-          notifier.alert("There was an error assigning the skill, Please try again later.");
+          notifier.alert("There was an error adding the skill, Please try again later.");
         } 
       );
     }
+  },
+  removeSkill() {
+    alert("TODO- in UserSkills:removeSkill")
   }
 }
 </script>

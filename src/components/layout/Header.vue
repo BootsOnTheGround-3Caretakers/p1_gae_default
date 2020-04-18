@@ -35,7 +35,7 @@
             <div class="dropdown-menu">
               <router-link v-if="!C_isGuestUser && !C_notAuthenticated" class="dropdown-item" to="/profile">Profile</router-link>
               <a class="dropdown-item" href="javascript:;">My Clusters</a>
-              <router-link v-if="!C_isGuestUser && !C_notAuthenticated" class="dropdown-item" to="/admin">Admin</router-link>
+              <router-link v-if="!C_isGuestUser && !C_notAuthenticated" class="dropdown-item" to="/user_admin">Manage</router-link>
               <a v-if="!C_isGuestUser && !C_notAuthenticated" class="dropdown-item" href="javascript:;" @click.stop="signOut">Logout</a>
             </div>
           </li>

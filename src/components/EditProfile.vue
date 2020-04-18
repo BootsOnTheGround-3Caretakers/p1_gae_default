@@ -377,17 +377,17 @@ export default {
   },
   watch: {
     DV_userProfileInfoContainer: {
-      handler: function (argument) {
+      handler: function (updatedProfile) {
         this.updatedLocationNames();
-        if (argument['profile'] && argument['profile']['user']) {
-          this.DV_profile = Object.assign({}, argument['profile']['user']);
+        if (updatedProfile['profile'] && updatedProfile['profile']['user']) {
+          this.DV_profile = Object.assign({}, updatedProfile['profile']['user']);
           this.DV_loading = false
         }
       },
       deep: true
     },
     DV_locationLookupData: {
-      handler: function (argument) {
+      handler: function (updatedProfile) {
         this.updatedLocationNames();
       },
       deep: true

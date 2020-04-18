@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import p1Home from '@/components/p1Home'
-import AdminPage from '@/components/AdminPage'
+import UserAdminPage from '@/components/UserAdminPage'
 import ShowProfile from '@/components/ShowProfile'
 import EditProfile from '@/components/EditProfile'
 import p5PeopleList from '@/components/p5PeopleList'
@@ -29,7 +29,7 @@ export default new Router({
     {
       path: '/admin',
       name: 'Admin',
-      component: AdminPage
+      component: UserAdminPage
     },
     {
       path: '/profile',

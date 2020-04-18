@@ -67,11 +67,14 @@ class bi7_watchdog_firebase {
     CI.bi7initNeedsLastUpdatedGlobalListener();
     CI.bi7initSkillsLastUpdatedGlobalListener();
     CI.bi7initHashtagsLastUpdatedGlobalListener();
-    CI.bi7initNeedsSkillsJoinsGlobalListener();
-    CI.bi7initSkillsNeedsJoinsGlobalListener();
-    CI.bi7initAllUsersDataListener();
     CI.bi7initLocationLookupDataListener();
-    CI.bi7initClustersLastUpdatedGlobalListener()
+
+    // Functions only needed when an admin user logs in
+    
+    // CI.bi7initNeedsSkillsJoinsGlobalListener();
+    // CI.bi7initSkillsNeedsJoinsGlobalListener();
+    // CI.bi7initAllUsersDataListener();
+    // CI.bi7initClustersLastUpdatedGlobalListener();
   }
 
 
@@ -1167,16 +1170,34 @@ class bi7_watchdog_firebase {
           }
           ///</end> only update user's needers data if firebase last_updated is greater than stored last_updated
 
-          for (let need_key in needers_list) {
-            if (need_key === "deletion_prevention_key") {continue;}
-            if (need_key === "last_updated") {continue;}
+          for (let needer_key in needers_list) {
+            if (needer_key === "deletion_prevention_key") {continue;}
+            if (needer_key === "last_updated") {continue;}
 
-            if (need_key in CI.IV_users_meta_data[user_uid]["needers"] === false) {
-              Vue.set(CI.IV_users_meta_data[user_uid]["needers"], need_key, {});
+            if (needer_key in CI.IV_users_meta_data[user_uid]["needers"] === false) {
+              Vue.set(CI.IV_users_meta_data[user_uid]["needers"], needer_key, {});
             }
 
-            let needer_data = needers_list[need_key];
-            Vue.set(CI.IV_users_meta_data[user_uid]["needers"][need_key], "last_updated", needer_data["last_updated"]);
+            let needer_data = needers_list[needer_key];
+            Vue.set(CI.IV_users_meta_data[user_uid]["needers"][needer_key], "last_updated", needer_data["last_updated"]);
+            
+            var needs_list = firebase_user_data[user_data_key][needer_key];
+
+            if ("needs" in CI.IV_users_meta_data[user_uid]["needers"][needer_key] === false) {
+              Vue.set(CI.IV_users_meta_data[user_uid]["needers"][needer_key], "needs", {});
+            }
+
+            for (let need_key in needs_list) {
+              if (need_key === "deletion_prevention_key") {continue;}
+              if (need_key === "last_updated") {continue;}
+
+              if (need_key in CI.IV_users_meta_data[user_uid]["needers"][needer_key]["needs"] === false) {
+                Vue.set(CI.IV_users_meta_data[user_uid]["needers"][needer_key]["needs"], need_key, {});
+              }
+
+              let need_data = needs_list[need_key];
+              Vue.set(CI.IV_users_meta_data[user_uid]["needers"][needer_key]["needs"], need_key, {need_uid: need_data.need_uid, special_notes: need_data.special_notes});
+            }
           }
         }
         ///</end? storing user's needers data

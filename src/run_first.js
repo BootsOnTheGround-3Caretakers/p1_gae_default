@@ -12,10 +12,8 @@ if (window.location.hostname.toString().includes('dev') ||
     
     // the domain to make ajax calls against, in production this should be empty
     window.G_dev_flag = 1;
-    window.G_ajax_baby_api = 'he http://c29a9953.ngrok.io';
 } else {
   window.G_dev_flag = 0;
-  window.G_ajax_baby_api = '';
 }
 window.G_firebase_auth = new Bi5FirebaseAuth()
 window.G_firebase_auth.setSignedInGlobalCallback(Bi8VueDataConnector.bi8SignInCallback)

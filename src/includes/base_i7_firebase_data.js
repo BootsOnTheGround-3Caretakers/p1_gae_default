@@ -325,6 +325,7 @@ class bi7_watchdog_firebase {
 
     var CI = this;
     var firebase_data = data.val();
+    if (firebase_data === null) {return;}
 
     if (firebase_data['last_updated'] && CI.IV_user_info['last_updated']) {
       if (firebase_data['last_updated'] === CI.IV_user_info['last_updated']) {

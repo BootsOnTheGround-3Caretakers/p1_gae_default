@@ -346,18 +346,23 @@ class bi5_firebase {
     var pathname = window.location.pathname.toLowerCase();
     ///// look for the sign in flags
     var login_flag = false;
+    var register_flag = false;
 
     if (pathname.toLowerCase().indexOf('/login') === 0) {
       login_flag = true;
     }
 
+    if (pathname.toLowerCase().indexOf('/register') === 0) {
+      register_flag = true;
+    }
+
     ///// anonymous login logic
-    if (user_auth_flag === false && user === null && login_flag === false) {
+    if (user_auth_flag === false && user === null && login_flag === false && register_flag === false) {
       CI.bi5GuestSignIn()
       return;
     }
 
-    if (user !== null && user.isAnonymous === true && (login_flag === false || CI.IV_guest_login_requested === true)) {
+    if (user !== null && user.isAnonymous === true && (register_flag === false || login_flag === false || CI.IV_guest_login_requested === true)) {
       user_auth_flag = true;
     }
     /////</end> anonymous login logic

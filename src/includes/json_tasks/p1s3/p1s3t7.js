@@ -4,7 +4,7 @@ import { RC, CR, AJRS } from '../../base_i2_success_codes'
 import base_i3_log from '../../base_i3_logging'
 import { ajax } from 'noquery-ajax'
 
-function addSkillToUser(firebase_email, firebase_token, user_uid, skill_uid, special_notes=null) {
+function addSkillToUser(firebase_email, firebase_token, user_uid, skill_uid, total_capacity, special_notes=null) {
   return new Promise(function (resolve, reject) {
     var return_msg = "";
     var debug_data = [];
@@ -16,6 +16,8 @@ function addSkillToUser(firebase_email, firebase_token, user_uid, skill_uid, spe
     call_result = bi1_data_validation.is_email_address(firebase_email);
     debug_data.push(call_result);
     call_result = bi1_data_validation.is_string(firebase_token);
+    debug_data.push(call_result);
+    call_result = bi1_data_validation.is_string_number(total_capacity);
     debug_data.push(call_result);
 
     // TODO- Confirm format and add functions to base_i1_datavalidation
@@ -53,7 +55,8 @@ function addSkillToUser(firebase_email, firebase_token, user_uid, skill_uid, spe
         'p1s3_token': firebase_token,
         'p1s3t7_user_uid': user_uid,
         'p1s3t7_skill_uid': skill_uid,
-        'p1s3t7_special_notes': special_notes
+        'p1s3t7_special_notes': special_notes,
+        'p1s3t7_total_capacity': total_capacity
       },
       success: function (result) {
         response_data = result;

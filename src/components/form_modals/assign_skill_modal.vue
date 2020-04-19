@@ -1,5 +1,5 @@
 <template>
-  <modal name="assignSkillModal" title="Alert Default" :height="'35%'">
+  <modal name="assignSkillModal" title="Alert Default" :height="'40%'">
     <template slot="default">
       <div class="p-5">
         <div class="h4 mb-3">Assign New Skill.</div>
@@ -14,16 +14,31 @@
                 placeholder="Pick a Skill"
                 label="name"
               ></multiselect>
-              <small class="text-danger">Selecting already selecting Skills will overwrite special notes</small>
+              <small class="text-danger">Selecting already selecting Skills will overwrite Notes and Capacity</small>
             </div>
           </div>
+          
+          <div class="form-group row">
+            <label for="total_capacity" class="col-md-4 col-form-label text-md-right">Total capacity</label>
+
+            <div class="col-md-6">
+              <input
+                id="total_capacity"
+                type="number"
+                class="form-control"
+                name="total_capacity"
+                v-model="DV_totalCapacity"
+              />
+            </div>
+          </div>
+
           <div class="form-group row">
             <label for="special_notes" class="col-md-4 col-form-label text-md-right">Special Notes</label>
 
             <div class="col-md-6">
               <input
                 id="special_notes"
-                type="special_notes"
+                type="text"
                 class="form-control"
                 name="special_notes"
                 v-model="DV_specialNotes"
@@ -51,8 +66,8 @@ export default {
     return {
       DV_selectedSkill: null,
       DV_specialNotes: "",
-      DV_skills: {}
-
+      DV_skills: {},
+      DV_totalCapacity: 0
     }
   },
   mounted() {
@@ -89,7 +104,8 @@ export default {
     assignSkill() {
       var data = {
         skill_uid: this.DV_selectedSkill.uid,
-        special_notes: this.DV_specialNotes
+        special_notes: this.DV_specialNotes,
+        total_capacity: this.DV_totalCapacity
       }
       this.$emit("assign-skill", data);
       this.close()

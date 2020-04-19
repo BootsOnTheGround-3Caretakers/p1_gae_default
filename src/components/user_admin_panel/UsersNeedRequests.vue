@@ -1,12 +1,11 @@
 <template>
   <div class="container mt-3 text-left">
-    <h2>Need Requests</h2>
+    <div class="d-flex justify-content-between mb-3">
+      <h2>Need Requests Management</h2>
+      <button @click.stop="createNeedRequest" class="btn btn-primary">Create Need Request</button>
+    </div>
     <div class="row mt-3">
       <div class="col-md-12">
-        <div class="d-flex justify-content-between mb-3">
-          <h4>Available Need requests</h4>
-          <button @click.stop="createNeedRequest" class="btn btn-primary">Create Need Request</button>
-        </div>
         <div class="table-responsive">
           <table class="table table-bordred table-striped">
             <thead>
@@ -28,14 +27,14 @@
                   >{{neederDisplayName(key)}}</span>
 
                   <span class="float-right d-flex" v-if="DV_selectedNeeder === key">
-                    <p class="mr-2" data-placement="top" title="Edit">
+                    <!-- <p class="mr-2" data-placement="top" title="Edit">
                       <button class="btn btn-primary btn-xs" >
-                        <span class="glyphicon glyphicon-pencil"></span>
+                        <i class="fas fa-pencil"></i>
                       </button>
-                    </p>
+                    </p> -->
                     <p data-placement="top" title="Delete">
                       <button class="btn btn-danger btn-xs" >
-                        <span class="glyphicon glyphicon-trash"></span>
+                        <i class="fas fa-trash"></i>
                       </button>
                     </p>
                   </span>
@@ -56,7 +55,7 @@
                             <td>
                               <p data-placement="top" title="Remove">
                                 <button @click.stop="deleteNeed" class="btn btn-danger btn-xs" >
-                                  <span class="glyphicon glyphicon-trash"></span>
+                                  <i class="fas fa-trash"></i>
                                 </button>
                               </p>
                             </td>
@@ -71,17 +70,17 @@
                   </div>
                 </td>
                 <td><span v-if="DV_selectedNeeder !== key">Partial</span></td>
-                <td>
+<!--                 <td>
                   <p v-if="DV_selectedNeeder !== key" data-placement="top" title="Edit">
                     <button class="btn btn-primary btn-xs" >
-                      <span class="glyphicon glyphicon-pencil"></span>
+                      Edit
                     </button>
                   </p>
-                </td>
+                </td> -->
                 <td>
                   <p v-if="DV_selectedNeeder !== key" data-placement="top" title="Remove">
                     <button @click.stop="deleteNeed" class="btn btn-danger btn-xs" >
-                      <span class="glyphicon glyphicon-trash"></span>
+                      <i class="fas fa-trash"></i>
                     </button>
                   </p>
                 </td>

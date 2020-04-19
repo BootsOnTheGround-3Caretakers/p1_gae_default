@@ -25,7 +25,7 @@
             <div class="col-md-6">
               <input
                 id="public_metadata"
-                type="public_metadata"
+                type="text"
                 class="form-control"
                 name="public_metadata"
                 disabled
@@ -40,7 +40,7 @@
             <div class="col-md-6">
               <input
                 id="private_metadata"
-                type="private_metadata"
+                type="text"
                 class="form-control"
                 name="private_metadata"
                 disabled
@@ -55,7 +55,7 @@
             <div class="col-md-6">
               <input
                 id="special_requests"
-                type="special_requests"
+                type="text"
                 class="form-control"
                 name="special_requests"
                 v-model="DV_specialRequests"

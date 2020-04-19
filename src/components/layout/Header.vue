@@ -15,18 +15,21 @@
           <li class="nav-item">
             <router-link to="/" class="nav-link">Home</router-link>
           </li>
+          <li class="nav-item">
+            <router-link to="/about" class="nav-link">About</router-link>
+          </li>
           <li v-if="C_isGuestUser || C_notAuthenticated" class="nav-item">
             <a @click.stop="goToLogin" href="javascript:;" class="nav-link">Sign In</a>
           </li>
           <li v-if="C_isGuestUser || C_notAuthenticated" class="nav-item">
             <a @click.stop="goToRegister" href="javascript:;" class="nav-link">Register</a>
           </li> 
-          <li v-if="!C_isGuestUser && !C_notAuthenticated" class="nav-item">
-            <router-link to="#" class="nav-link">My Clusterd</router-link>
+<!--           <li v-if="!C_isGuestUser && !C_notAuthenticated" class="nav-item">
+            <router-link to="#" class="nav-link">My Clusters</router-link>
           </li> 
           <li v-if="!C_isGuestUser && !C_notAuthenticated" class="nav-item">
             <router-link to="/people" class="nav-link">Look People</router-link>
-          </li> 
+          </li>  -->
            <!-- Dropdown -->
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="javascript:;" id="navbardrop" data-toggle="dropdown">
@@ -34,7 +37,7 @@
             </a>
             <div class="dropdown-menu">
               <router-link v-if="!C_isGuestUser && !C_notAuthenticated" class="dropdown-item" to="/profile">Profile</router-link>
-              <a class="dropdown-item" href="javascript:;">My Clusters</a>
+              <!-- <a class="dropdown-item" href="javascript:;">My Clusters</a> -->
               <router-link v-if="!C_isGuestUser && !C_notAuthenticated" class="dropdown-item" to="/user_admin">Manage</router-link>
               <a v-if="!C_isGuestUser && !C_notAuthenticated" class="dropdown-item" href="javascript:;" @click.stop="signOut">Logout</a>
             </div>

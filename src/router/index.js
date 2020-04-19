@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import p1Home from '@/components/p1Home'
+import p3About from '@/components/p3About'
 import UserAdminPage from '@/components/UserAdminPage'
 import ShowProfile from '@/components/ShowProfile'
 import EditProfile from '@/components/EditProfile'
@@ -16,6 +17,11 @@ export default new Router({
   mode: 'history',
   
   routes: [
+    {
+      path: '/about',
+      name: 'about',
+      component: p3About
+    },
     {
       path: '/login',
       name: 'login',

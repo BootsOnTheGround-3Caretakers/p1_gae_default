@@ -236,6 +236,11 @@ export default {
       notifier.async(resp,
         (res) => {
           notifier.success(`Need has been added to Need Request successfully.`);
+
+          // Adding 2s delay to wait for server updates data.
+          setTimeout(function() { 
+            window.G_firebase_data.bi7getUsersProfileData(window.G_firebase_data.IV_user_info["user_uid"]);
+          }, 2000);
         },
         (error) => {
           notifier.alert("There was an error adding the need to need request, Please try again later.");

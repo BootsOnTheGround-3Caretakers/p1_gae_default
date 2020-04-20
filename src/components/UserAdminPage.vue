@@ -20,6 +20,12 @@
           @click.stop="setAtiveTab('clusters')" >
         My Clusters
       </a>
+
+      <a class="sub_menu_item" href="javscript:;" 
+          :class="{'router-link-exact-active' : activeSubpage == 'hashtags'}"
+          @click.stop="setAtiveTab('hashtags')" >
+        My Hashtags
+      </a>
     </div>
     
     <div>
@@ -28,6 +34,7 @@
         :users-needers="DV_needers"
         :users-skills="DV_skills"
         :users-clusters="DV_clusters"
+        :users-hashtags="DV_hashtags"
       ></component>
     </div>
   </div>
@@ -37,17 +44,36 @@
 import UsersNeedRequests from './user_admin_panel/UsersNeedRequests.vue'
 import UsersSkills from './user_admin_panel/UsersSkills.vue'
 import UsersClusters from './user_admin_panel/UsersClusters.vue'
+import UsersHashtags from './user_admin_panel/UsersHashtags.vue'
 
 export default {
   name: 'AdminPage',
-  components: {UsersNeedRequests, UsersSkills, UsersClusters},
+  components: {UsersNeedRequests, UsersSkills, UsersClusters, UsersHashtags},
   data () {
     return {
       activeSubpage: 'skills',
       DV_userMetaData: {},
       DV_needers: {},
       DV_skills: {},
-      DV_clusters: {}
+      DV_clusters: {},
+      DV_hashtags: {
+        5143213941719040: {
+          description: "Test-Hashtag-Description",
+          name: "#Test-Hashtag2"
+        },
+        5630742793027584: {
+          description: "#LGBTQ",
+          name: "#LGBTQ"
+        },
+        5633226290757632: {
+          description: "#PREGNANT",
+          name: "#PREGNANT"
+        },
+        5635703144710144: {
+          description: "#CHRISTIAN",
+          name: "#CHRISTIAN"
+        }
+      }
     }
   },
   mounted() {
@@ -69,6 +95,9 @@ export default {
           break;
         case 'clusters':
           return 'UsersClusters'
+          break;
+        case 'hashtags':
+          return 'UsersHashtags'
           break;
       }
     }

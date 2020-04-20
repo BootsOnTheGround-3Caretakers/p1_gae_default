@@ -2,7 +2,7 @@
   <modal name="assignNeedModal" title="Alert Default" :height="'50%'">
     <template slot="default">
       <div class="p-5">
-        <div class="h4 mb-3">Add New Need.</div>
+        <div class="h4 mb-3">Add New Need to Need Request.</div>
         <form class="mt-3">
 
           <div class="form-group row">

@@ -1,6 +1,8 @@
 /* eslint-disable */
 import { CR, RC, AJRS } from "./base_i2_success_codes";
 import bi1_data_validation from "./base_i1_datavalidation";
+import createUser from "./json_tasks/p1s3/p1s3t3.js";
+import getUserProfile from "./json_tasks/p1s5/p1s5t1.js";
 import base_i3_log from "./base_i3_logging";
 // import { ajax } from "noquery-ajax";
 window.firebase = require('firebase')
@@ -15,7 +17,8 @@ class bi5_firebase {
     CI.IV_last_name = "";
 
     // Will be used to create new user in firebase if not already exists.
-    CI.IV_form_full_name = "";
+    CI.IV_form_first_name = "";
+    CI.IV_form_last_name = "";
     CI.IV_form_phone_number = "";
     
     CI.IV_emailVerified = false;
@@ -362,7 +365,7 @@ class bi5_firebase {
       return;
     }
 
-    if (user !== null && user.isAnonymous === true && (register_flag === false || login_flag === false || CI.IV_guest_login_requested === true)) {
+    if (user !== null && user.isAnonymous === true && ((login_flag === false && register_flag === false) || CI.IV_guest_login_requested === true)) {
       user_auth_flag = true;
     }
     /////</end> anonymous login logic
@@ -458,7 +461,7 @@ class bi5_firebase {
     return true;
   }
 
-  bi5CreateUser(email = null, password = null, full_name = null, phone_number = null) {
+  bi5CreateUser(form_data) {
     var call_result = {};
     var debug_data = [];
     var return_msg = "bi5_firebase:bi5CreateUser";
@@ -468,7 +471,7 @@ class bi5_firebase {
     CI.IV_guest_login_requested = false;
     
     ////// input validation
-    call_result = bi1_data_validation.is_email_address(email);
+    call_result = bi1_data_validation.is_email_address(form_data.email);
     debug_data.push(call_result);
     if (call_result[CR.success] === RC.success) {
       CI.callCallBackFunction(CI.IV_login_page_callbacks['email_valid']);
@@ -477,7 +480,7 @@ class bi5_firebase {
       return false;
     }
 
-    call_result = bi1_data_validation.is_string(password,1,100);
+    call_result = bi1_data_validation.is_string(form_data.password,1,100);
     debug_data.push(call_result);
     if (call_result[CR.success] === RC.success) {
       CI.callCallBackFunction(CI.IV_login_page_callbacks['password_valid']);
@@ -492,10 +495,14 @@ class bi5_firebase {
     CI.IV_token_update_count = 0;
     CI.IV_guest_login_requested = false;
     CI.IV_token_verification_loop_active = false;
-    CI.IV_form_full_name = full_name;
-    CI.IV_form_phone_number = phone_number;
+    CI.IV_form_first_name = form_data.first_name;
+    CI.IV_form_last_name = form_data.last_name;
+    CI.IV_form_phone_number = form_data.phone_number;
 
-    firebase.auth().createUserWithEmailAndPassword(email, password).catch(function (error) {
+    firebase.auth().createUserWithEmailAndPassword(form_data.email, form_data.password).then(function(response) {
+      // TODO- uncomment this line to create user in datastore and replicate to firebase DB.
+      // setTimeout(function () { CI.bi5WaitForFirebaseToken(form_data); }.bind(CI), 2000);
+    }).catch(function (error) {
       CI.callCallBackFunction(CI.IV_login_page_callbacks['create_user_failed'], error)
       return_msg += "user creation failed with error:" + JSON.stringify(error);
       base_i3_log(G_username, G_ip, G_page_id, task_id, RC.input_validation_failed, return_msg, debug_data);
@@ -698,6 +705,75 @@ class bi5_firebase {
     //     localStorage.removeItem('firebase_token_expiration');
     //   }.bind(CI),
     // });
+  }
+
+  bi5WaitForFirebaseToken(form_data) {
+    var call_result = {};
+    var debug_data = [];
+    var return_msg = "bi5_firebase:bi5WaitForFirebaseToken";
+    var task_id = "bi5_firebase:bi5WaitForFirebaseToken";
+    var CI = this;
+
+    if (CI.IV_token_received === false) {
+      setTimeout(CI.bi5WaitForFirebaseToken(form_data), 2000);
+      return;
+    } 
+
+    createUser(
+      CI.IV_email_address,
+      CI.IV_id_token,
+      form_data.first_name,
+      form_data.last_name,
+      form_data.phone_number
+    ).then(function(response) {
+      setTimeout(function () { CI.bi5FetchUsersProfile(form_data); }.bind(CI), 1000);
+    }).catch(function(error) {
+      return_msg += "failed to create datastore user." + JSON.stringify(error);
+      base_i3_log(G_username, G_ip, G_page_id, task_id, RC.firebase_failure, return_msg, debug_data);
+      return false;
+    })
+
+    return true;
+  }
+
+  bi5FetchUsersProfile(form_data) {
+    var call_result = {};
+    var debug_data = [];
+    var return_msg = "bi5_firebase:bi5FetchUsersProfile";
+    var task_id = "bi5_firebase:bi5FetchUsersProfile";
+    var CI = this;
+
+    getUserProfile(
+      CI.IV_email_address,
+      CI.IV_id_token,
+      "",
+      "",
+      form_data.phone_number
+    ).then(function(response) {
+      bi5UpdateUsersProfile(response.response_data);
+    }).catch(function(error) {
+      return_msg += "failed to create datastore user." + JSON.stringify(error);
+      base_i3_log(G_username, G_ip, G_page_id, task_id, RC.firebase_failure, return_msg, debug_data);
+      return false;
+    })
+
+    return true;
+  }
+
+  bi5UpdateUsersProfile(user_data) {
+    var call_result = {};
+    var debug_data = [];
+    var return_msg = "bi5_firebase:bi5FetchUsersProfile";
+    var task_id = "bi5_firebase:bi5FetchUsersProfile";
+    var CI = this;
+
+    // Get user's uid from user_data and 
+    // TODO- here make call to p1s3t4-modify-user and 
+    // update user's firebase_uid and email address and start listener 
+    // on user's firebase folder path using following command
+    // window.G_firebase_data.InitUserInfoListener();
+
+    return true;
   }
 }
 

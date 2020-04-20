@@ -7,30 +7,48 @@
           <div class="card-body">
             <div v-if="error" class="alert alert-danger">{{error}}</div>
             <form action="#" @submit.prevent="submit">
+              <h6 class="text-danger">* All fields are required.</h6>
               <div class="form-group row">
-                <label for="name" class="col-md-4 col-form-label text-md-right">Name</label>
+                <label for="first_name" class="col-md-4 col-form-label text-md-right">First Name *</label>
 
                 <div class="col-md-6">
                   <input
-                    id="name"
-                    type="name"
+                    id="first_name"
+                    type="text"
                     class="form-control"
-                    name="name"
+                    name="first_name"
                     value
                     required
                     autofocus
-                    v-model="form.name"
+                    v-model="form.first_name"
                   />
                 </div>
               </div>
 
               <div class="form-group row">
-                <label for="email" class="col-md-4 col-form-label text-md-right">Email</label>
+                <label for="last_name" class="col-md-4 col-form-label text-md-right">Last Name *</label>
+
+                <div class="col-md-6">
+                  <input
+                    id="last_name"
+                    type="text"
+                    class="form-control"
+                    name="last_name"
+                    value
+                    required
+                    autofocus
+                    v-model="form.last_name"
+                  />
+                </div>
+              </div>
+
+              <div class="form-group row">
+                <label for="email" class="col-md-4 col-form-label text-md-right">Email *</label>
 
                 <div class="col-md-6">
                   <input
                     id="email"
-                    type="email"
+                    type="text"
                     class="form-control"
                     name="email"
                     value
@@ -42,12 +60,12 @@
               </div>
 
               <div class="form-group row">
-                <label for="phone_number" class="col-md-4 col-form-label text-md-right">Phone Number</label>
+                <label for="phone_number" class="col-md-4 col-form-label text-md-right">Phone Number *</label>
 
                 <div class="col-md-6">
                   <input
                     id="phone_number"
-                    type="phone_number"
+                    type="text"
                     class="form-control"
                     name="phone_number"
                     value
@@ -89,12 +107,14 @@
 
 <script>
 import firebase from "firebase";
+import AWN from "awesome-notifications";
 
 export default {
   data() {
     return {
       form: {
-        name: "",
+        first_name: "",
+        first_last: "",
         email: "",
         password: "",
         phone_number: ""
@@ -122,14 +142,19 @@ export default {
   },
   methods: {
     submit() {
-      window.G_firebase_auth.bi5CreateUser(this.form.email, this.form.password)
+      if (!this.form.first_name || !this.form.last_name || 
+          !this.form.email || !this.form.phone_number ) {
+        this.$awn.warning("Please fill in the required information");
+        return;
+      }
+      window.G_firebase_auth.bi5CreateUser(this.form)
     },
     signedInCallback: function() {
-       if (window.G_firebase_auth.IV_is_guest === true) {return;}
+      if (window.G_firebase_auth.IV_is_guest === true) {return;}
       this.$router.replace("/");
     },
     createUserFailed: function(error) {
-      alert("create user failed with error:" + JSON.stringify(error))
+      this.$awn.warning("Sign up failed with error:" + JSON.stringify(error))
     },
   }
 };

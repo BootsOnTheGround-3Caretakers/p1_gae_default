@@ -4,7 +4,7 @@ import { RC, CR, AJRS } from '../../base_i2_success_codes'
 import base_i3_log from '../../base_i3_logging'
 import { ajax } from 'noquery-ajax'
 
-function getUserProfile(firebase_email, firebase_token, requesting_user_uid, user_uid, phone_number="") {
+function getUserProfile(firebase_email, firebase_token, requesting_user_uid=null, user_uid=null, phone_number="") {
   return new Promise(function (resolve, reject) {
     var return_msg = "";
     var debug_data = [];
@@ -39,17 +39,26 @@ function getUserProfile(firebase_email, firebase_token, requesting_user_uid, use
       reject({ success: RC.input_validation_failed, return_msg: return_msg, debug_data: debug_data, response_data: response_data });
       return;
     }
+
+    var data = {
+      'p1s5_firebase_email': firebase_email,
+      'p1s5_token': firebase_token,
+    }
+
+    if (requesting_user_uid) {
+      data['p1s5t1_requesting_user_uid'] = requesting_user_uid;
+    }
+    if (user_uid) {
+      data['p1s5t1_user_uid'] = user_uid;
+    }
+    if (phone_number) {
+      data['p1s5t1_phone_number'] = phone_number;
+    }
     /////</end> input validation
     ajax({
       url: "https://p1s5-web-requests-dot-aqueous-choir-160420.appspot.com/p1s5t1-get-user-profile",
       method: 'POST',
-      data: {
-        'p1s5_firebase_email': firebase_email,
-        'p1s5_token': firebase_token,
-        'p1s5t1_phone_number': phone_number,
-        'p1s5t1_requesting_user_uid': requesting_user_uid,
-        'p1s5t1_user_uid': user_uid,
-      },
+      data: data,
       success: function (result) {
         response_data = result;
         resolve({ success: RC.success, return_msg: return_msg, debug_data: debug_data, response_data: response_data});

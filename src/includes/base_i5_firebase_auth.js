@@ -362,7 +362,7 @@ class bi5_firebase {
       return;
     }
 
-    if (user !== null && user.isAnonymous === true && (register_flag === false || login_flag === false || CI.IV_guest_login_requested === true)) {
+    if (user !== null && user.isAnonymous === true && ((login_flag === false && register_flag === false) || CI.IV_guest_login_requested === true)) {
       user_auth_flag = true;
     }
     /////</end> anonymous login logic

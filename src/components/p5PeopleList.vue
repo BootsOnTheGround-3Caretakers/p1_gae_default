@@ -23,7 +23,9 @@
       </div>
       <div class="mt-3">
         Zip code: 
-        <input class="rounded p-1" v-model="DV_zipSearchQuery" placeholder="Search by zip code"/> 
+        <input class="rounded p-1" v-model="DV_apiFilters.ZipCode" placeholder="Search by zip code"/> 
+        Hashtags: 
+        <input class="rounded p-1" v-model="DV_apiFilters.Hashtags" placeholder="Search by Hashtags"/> 
         <button class="btn btn-info" name="search" @click.stop="fetchUsersList">Search</button>
       </div>
       <br />
@@ -33,18 +35,19 @@
       </center>
     </div>
     <br />
-    <div class="container">
-      <div class="row pl-4 pr-4">
-        <div class="col-md">
+    <div>
+      <div class="row">
+        <div class="col-md-6 px-0">
           <h4>Needers {{C_filteredNeeders.length}} </h4>
           <div class="userListContainer">
-            <table class="table table-hover">
+            <table class="table table-hover table-sm">
               <thead>
                 <tr>
                   <th></th>
-                  <th>Zip Code</th>
-                  <th>User</th>
-                  <th>Needs</th>
+                  <th @click="DV_neederObj.setOrderBy('ZipCode')">Zip Code</th>
+                  <th @click="DV_neederObj.setOrderBy('name')">User</th>
+                  <th @click="DV_neederObj.setOrderBy('Description')">Needs</th>
+                  <th @click="DV_neederObj.setOrderBy('Hashtags')">Tags</th>
                   <th>Delete</th>
                 </tr>
               </thead>
@@ -57,32 +60,36 @@
                       name="select_needer" 
                       v-model="DV_selectedNeeder"
                       :value="needer" 
+                      :id="needer._id"
                     />
                   </td>
-                  <td>{{needer.ZipCode}}</td>
-                  <td><a :href="`mailto:${needer.email}`">{{needer.name}}</a></td>
-                  <td>{{needer.Description}}</td>
+                  <td><label :for="needer._id">{{needer.ZipCode}}</label></td>
+                  <td><a :href="`mailto:${needer.email}`">{{needer.name}}</a> ({{needer.RequestedClusterSize || 1}})</td>
+                  <td><label :for="needer._id">{{needer.Description}}</label></td>
+                  <td><label :for="needer._id">{{needer.Hashtags}}</label></td>
                   <td>
                     <button 
                       name="remove_user" 
                       @click.stop="removeUser(needer._id, 'needers')"
-                    >Delete</button>
+                      class="btn btn-danger"
+                    >X</button>
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
-        <div class="col-md">
+        <div class="col-md-6 px-0">
           <h4>Care Takers {{C_filteredCareTakers.length}}</h4>
           <div class="userListContainer">
-            <table class="table table-hover">
+            <table class="table table-hover table-sm">
               <thead>
                 <tr>
                   <th></th>
-                  <th>Zip Code</th>
-                  <th>User</th>
-                  <th>Provides</th>
+                  <th @click="DV_careTakerObj.setOrderBy('ZipCode')">Zip Code</th>
+                  <th @click="DV_careTakerObj.setOrderBy('name')">User</th>
+                  <th @click="DV_careTakerObj.setOrderBy('Description')">Provides</th>
+                  <th @click="DV_careTakerObj.setOrderBy('Hashtags')">Tags</th>
                   <th>Delete</th>
                 </tr>
               </thead>
@@ -95,16 +102,19 @@
                       name="select_care_taker" 
                       v-model="careTaker.selected" 
                       :value="careTaker._id" 
+                      :id="careTaker._id"
                     />
                   </td>
-                  <td>{{careTaker.ZipCode}}</td>
-                  <td><a :href="`mailto:${careTaker.email}`">{{careTaker.name}}</a></td>
-                  <td>{{careTaker.Description}}</td>
+                  <td><label :for="careTaker._id">{{careTaker.ZipCode}}</label></td>
+                  <td><a :href="`mailto:${careTaker.email}`">{{careTaker.name}}</a> ({{careTaker.SlotCount || 1}})</td>
+                  <td><label :for="careTaker._id">{{careTaker.Description}}</label></td>
+                  <td><label :for="careTaker._id">{{careTaker.Hashtags}}</label></td>
                   <td>
                     <button 
                       name="remove_user" 
                       @click.stop="removeUser(careTaker._id, 'careTakers')"
-                    >Delete</button>
+                      class="btn btn-danger"
+                    >X</button>
                   </td>
                 </tr>
               </tbody>
@@ -125,15 +135,65 @@ export default {
   data () {
     return {
       DV_apiHost: 'http://c29a9953.ngrok.io/api/v1/',
-      DV_neederTable: 'NeedersLookingForMatch',
-      DV_careTakerTable: 'CaretakersLookingForMatch',
-      DV_matchedClustersTable: 'MatchedClusters',
+      DV_neederObj: {
+        table: 'NeedersLookingForMatch',
+        data: [],
+        selected: '',
+        zipFilter: '',
+        orderBy: 'name',
+        orderDir: 'asc',
+        isFetching: false,
+        setOrderBy: function(orderBy){
+          this.orderBy = orderBy;
+        },
+        sort: function(field){
+          if(field === this.orderBy)
+            this.orderDir = this.orderDir==='asc'?'desc':'asc';
+          this.orderBy = field;
+        }
+      },
+      DV_careTakerObj: {
+        table: 'CaretakersLookingForMatch',
+        data: [],
+        selected: '',
+        zipFilter: '',
+        orderBy: 'name',
+        orderDir: 'asc',
+        isFetching: false,
+        setOrderBy: function(orderBy){
+          this.orderBy = orderBy;
+        },
+        sort: function(field){
+          if(field === this.orderBy)
+            this.orderDir = this.orderDir==='asc'?'desc':'asc';
+          this.orderBy = field;
+        }
+      },
+      DV_clusterObj: {
+        table: 'CaretakersLookingForMatch',
+        data: [],
+        selected: '',
+        zipFilter: '',
+        orderBy: 'name',
+        orderDir: 'asc',
+        isFetching: false,
+        setOrderBy: function(orderBy){
+          this.orderBy = orderBy;
+        },
+        sort: function(field){
+          if(field === this.orderBy)
+            this.orderDir = this.orderDir==='asc'?'desc':'asc';
+          this.orderBy = field;
+        }
+      },
       DV_zipSearchQuery: "",
       DV_zipFilter: "",
-      DV_needersData: [],
-      DV_careTakersData: [],
       DV_selectedNeeder: null,
-      DV_careTakerZipFilter: ""
+      DV_apiFilters: {
+        ZipCode: "",
+        Hashtags: ""
+      },
+      DV_zips: []
     }
   },
   mounted() {
@@ -142,47 +202,71 @@ export default {
   computed: {
     C_filteredNeeders() {
       var vm = this;
+      
+      this.DV_neederObj.data = this.DV_neederObj.data.sort((a,b) => {
+        let modifier = 1;
+        if(this.DV_neederObj.orderDir === 'desc')
+          modifier = -1;
+        if(a[this.DV_neederObj.orderBy] < b[this.DV_neederObj.orderBy])
+          return -1 * modifier;
+        if(a[this.DV_neederObj.orderBy] > b[this.DV_neederObj.orderBy])
+          return 1 * modifier;
+        return 0;
+      });
+      
       if (this.DV_zipFilter === "") {
-        return this.DV_needersData;
+        return this.DV_neederObj.data;
       }
 
-      return this.DV_needersData.filter(item => item.ZipCode == vm.DV_zipFilter);
+      return this.DV_neederObj.data.filter(item => item.ZipCode == vm.DV_zipFilter);
     },
     C_filteredCareTakers() {
       var vm = this;
-      var filtered_entries = this.DV_careTakersData;
+      this.DV_careTakerObj.data = this.DV_careTakerObj.data.sort((a,b) => {
+        let modifier = 1;
+        if(this.DV_neederObj.orderDir === 'desc')
+          modifier = -1;
+        if(a[this.DV_neederObj.orderBy] < b[this.DV_neederObj.orderBy])
+          return -1 * modifier;
+        if(a[this.DV_neederObj.orderBy] > b[this.DV_neederObj.orderBy])
+          return 1 * modifier;
+        return 0;
+      });
+      var filtered_entries = this.DV_careTakerObj.data;
 
-      if (this.DV_zipFilter === "" && this.DV_careTakerZipFilter === "") {
-        return filtered_entries;
-      }
-
+	  
       if (this.DV_zipFilter !== "") {
         filtered_entries = filtered_entries.filter(item => item.ZipCode === vm.DV_zipFilter);
       }
-      
-      if (this.DV_careTakerZipFilter !== "") {
-        filtered_entries = filtered_entries.filter((item) => item.ZipCode === this.DV_careTakerZipFilter);
+      else if (this.DV_careTakerObj.zipFilter !== "") {
+        filtered_entries = filtered_entries.filter((item) => item.ZipCode === this.DV_careTakerObj.zipFilter);
       }
       return filtered_entries;
     },
     C_zipSummary() {
       let summary = {}
       let zip;
-      for (var index in this.DV_needersData) {
-        zip = this.DV_needersData[index].ZipCode;
+      if (this.DV_zips.length > 0)
+        for (var i = 0; i < this.DV_zips.length; i++)
+          summary[this.DV_zips[i]] = {needers: 0, careTakers: 0};
+      
+      for (var index in this.DV_neederObj.data) {
+        zip = this.DV_neederObj.data[index].ZipCode;
 
         if (typeof summary[zip] == "undefined") {
-          summary[zip] = {needers : 1, careTakers : 0};
+          summary[zip] = {needers: 1, careTakers: 0};
+          this.DV_zips.push(zip);
         } else{
           summary[zip].needers++;
         }
       }
 
-      for ( var index in this.DV_careTakersData) {
-        zip = this.DV_careTakersData[index].ZipCode;
+      for ( var index in this.DV_careTakerObj.data) {
+        zip = this.DV_careTakerObj.data[index].ZipCode;
 
         if (typeof summary[zip] == "undefined") {
-          summary[zip] = {needers : 0, careTakers : 1};
+          summary[zip] = {needers: 0, careTakers: 1};
+          this.DV_zips.push(zip);
         } else {
           summary[zip].careTakers++;
         }
@@ -192,38 +276,65 @@ export default {
     }
   },
   methods: {
-    fetchUsersList() {
-      var query = '';
-      if (this.DV_zipSearchQuery) {
-        query = `?query=%7B%22ZipCode%22:%22${this.DV_zipSearchQuery}%22%7D`;
+    filtersToApiString(){
+      if(typeof this.DV_apiFilters != "object" || Object.keys(this.DV_apiFilters).length < 1)
+        return '';
+      // Sample: http://c29a9953.ngrok.io/api/v1/NeedersLookingForMatch/?limit=50&query={"ZipCode":"19871","Hashtags":"MyHash"}
+      var ret = '&query={';
+      for(var key in this.DV_apiFilters){
+        if(this.DV_apiFilters[key])
+          if(key == 'Hashtags')
+            ret += '"' + key + '":{"$regex":"' + this.DV_apiFilters[key] + '"},';
+          else
+            ret += '"' + key + '":"' + this.DV_apiFilters[key] + '",';
       }
+      return ret.replace(/,$/, '') + '}';
+   },
+   filtersToClusteredApiString(){
+        if(typeof this.DV_apiFilters != "object" || Object.keys(this.DV_apiFilters).length < 1)
+          return '&query={"ClusterIsActive":{"$ne":false}}';
+        // Sample: http://c29a9953.ngrok.io/api/v1/MatchedClusters/?limit=50&query={"ZipCodeCommon":"19871","HashtagsCommon":"MyHash","ClusterIsActive":{"$ne":false}}
+        var ret = '&query={';
+        for(var key in this.DV_apiFilters){
+          if(this.DV_apiFilters[key])
+            if(key == 'Hashtags')
+              ret += '"HashtagsCommon":{"$regex":"' + this.DV_apiFilters[key] + '"},';
+            else if(key == 'ZipCode')
+              ret += '"ZipCodeCommon":"' + this.DV_apiFilters[key] + '",';
+        }
+        ret += '"ClusterIsActive":{"$ne":false}}'
+        return ret;
+    },
+    fetchUsersList() {
+      var query = '?';
+      query += this.filtersToApiString();
 
-      // Fetch DV_needersData
-      http.get(this.DV_apiHost + this.DV_neederTable + query)
+      // Fetch DV_neederObj.data
+      http.get(this.DV_apiHost + this.DV_neederObj.table + query)
         .then((response) => {
-          this.DV_needersData = response.data;
+          this.DV_neederObj.data = response.data;
         }).catch((error) => {
           console.log(error);
         })
 
-      // Fetch DV_careTakersData
-      http.get(this.DV_apiHost + this.DV_careTakerTable + query)
+      // Fetch DV_careTakerObj.data
+      http.get(this.DV_apiHost + this.DV_careTakerObj.table + query)
         .then((response) => {
-          this.DV_careTakersData = response.data;
+          this.DV_careTakerObj.data = response.data;
         }).catch((error) => {
           console.log(error);
         })
     },
     removeUser(user_uid, type) {
       if (type === "needers") {
-        http.delete(this.DV_apiHost + this.DV_neederTable + '/' + user_uid)
+        http.delete(this.DV_apiHost + this.DV_neederObj.table + '/' + user_uid)
         .then((response) => {
-          let index = this.DV_needersData.findIndex((item) => {
+          let index = this.DV_neederObj.data.findIndex((item) => {
             return item._id === user_uid;
           });
 
           if (index !== undefined) {
-            this.DV_needersData.splice(index, 1);
+            this.DV_neederObj.data.splice(index, 1);
           }
           this.$awn.success("Needer User was removed successfully.");
         }).catch((error) => {
@@ -232,14 +343,14 @@ export default {
         });
       }
       else if (type === "careTakers") {
-        http.delete(this.DV_apiHost + this.DV_careTakerTable + '/' + user_uid)
+        http.delete(this.DV_apiHost + this.DV_careTakerObj.table + '/' + user_uid)
         .then((response) => {
-          let index = this.DV_careTakersData.findIndex((item) => {
+          let index = this.DV_careTakerObj.data.findIndex((item) => {
             return item._id === user_uid;
           });
           
           if (index !== undefined) {
-            this.DV_careTakersData.splice(index, 1);
+            this.DV_careTakerObj.data.splice(index, 1);
           }
           this.$awn.success("Care Taker was removed successfully.");
         }).catch((error) => {
@@ -251,7 +362,7 @@ export default {
     formCluster() {
       let vm = this;
 
-      if (this.DV_selectedNeeder === null || this.DV_selectedNeeder === undefined) {
+      if (!this.DV_neederObj.selected) {
         this.$awn.warning("Please select a needer before creating Cluster.");
         return;
       }
@@ -268,11 +379,13 @@ export default {
       }
 
       let extraJsonObj = [];
-      extraJsonObj.push(this.DV_selectedNeeder);
+      extraJsonObj.push(this.DV_neederObj.selected);
 
       let data = {
-        NeederEmail : this.DV_selectedNeeder.email,
-        ZipCodeCommon : this.DV_selectedNeeder.ZipCode
+        NeederEmail : this.DV_neederObj.selected.email,
+        ZipCodeCommon : this.DV_neederObj.selected.ZipCode,
+        ClusterIsActive : true,
+        HashtagsCommon : this.DV_neederObj.selected.Hashtags
       }
 
       for (let index in selected_care_takers) {
@@ -284,7 +397,7 @@ export default {
       }
       data['ExtraJSONstrings'] = JSON.stringify(extraJsonObj);
 
-      http.post(this.DV_apiHost + this.DV_matchedClustersTable, data)
+      http.post(this.DV_apiHost + this.DV_clusterObj.table, data)
       .then((response) => {
         this.$awn.success("Cluster formed successfully.");
       }, (error) => {
@@ -293,8 +406,8 @@ export default {
       });
 
       // Delete the selected records
-      this.removeUser(this.DV_selectedNeeder._id, 'needers');
-      this.DV_selectedNeeder = null;
+      this.removeUser(this.DV_neederObj.selected._id, 'needers');
+      this.DV_neederObj.selected = null;
 
       for (var index = 0; index < selected_care_takers.length; index++) {
         this.removeUser(selected_care_takers[index]._id, 'careTakers');
@@ -302,12 +415,8 @@ export default {
     }
   },
   watch: {
-    DV_selectedNeeder() {
-      if (this.DV_selectedNeeder !== null && this.DV_selectedNeeder !== undefined) {
-        this.DV_careTakerZipFilter = this.DV_selectedNeeder.ZipCode;
-      } else {
-        this.DV_careTakerZipFilter = "";
-      }
+    DV_selectedNeeder(val) {
+      this.DV_careTakerObj.zipFilter = val.ZipCode;
     }
   }
 }

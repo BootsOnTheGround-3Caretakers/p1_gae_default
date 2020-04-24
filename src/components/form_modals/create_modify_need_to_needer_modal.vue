@@ -48,6 +48,7 @@ import Multiselect from 'vue-multiselect'
 import AWN from "awesome-notifications";
 
 export default {
+  props: ['need'],
   components: {Multiselect},
   data() {
     return {
@@ -82,6 +83,7 @@ export default {
     },
     close() {
       this.clearForm();
+      this.$emit("edit-form-closed");
       this.$modal.hide('assignNeedModal');
     },
     clearForm() {
@@ -95,6 +97,29 @@ export default {
       }
       this.$emit("assign-need", data);
       this.close()
+    },
+    setSelectedNeed(need_uid) {
+      let data = null;
+
+      if (this.DV_needs) {
+        for (let key in this.DV_needs) {
+          if (key === need_uid) {
+            let need = this.DV_needs[key];
+            data = {name: need.name, uid: key};
+            break;
+          }
+        }
+      }
+
+      this.DV_selectedNeed = data;
+    }
+  },
+  watch: {
+    need() {
+      if (this.need) {
+        this.DV_specialRequests = this.need.special_notes;
+        this.setSelectedNeed(this.need.need_uid);
+      }
     }
   }
 }

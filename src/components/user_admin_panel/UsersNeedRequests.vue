@@ -45,6 +45,7 @@
                           <th>#</th>
                           <th>Need</th>
                           <th>Special Notes</th>
+                          <th>Edit</th>
                           <th>Remove</th>
                         </thead>
                         <tbody>
@@ -52,6 +53,13 @@
                             <td>{{index1+1}}</td>
                             <td>{{need.name}}</td>
                             <td>{{need.special_notes}}</td>
+                            <td>
+                              <p class="mr-2" data-placement="top" title="Edit">
+                                <button @click.stop="editNeed(need)" class="btn btn-primary btn-xs" >
+                                  <i class="fas fa-pencil"></i>
+                                </button>
+                              </p>
+                            </td>
                             <td>
                               <p data-placement="top" title="Remove">
                                 <button @click.stop="deleteNeed" class="btn btn-danger btn-xs" >
@@ -92,12 +100,14 @@
     </div>
     <create-modify-need-to-needer-modal 
       ref="addNeedtoNeedRequestForm" 
+      :need="DV_editNeed"
+      @edit-form-closed="clearEditUidFlags"
       @assign-need="addNeedToNeeder"
     ></create-modify-need-to-needer-modal>
     <create-modify-need-request-modal 
       ref="createNeedRequestModal" 
-      :need-request="DV_needRequests[DV_editNeederUid]"
-      @edit-form-closed="DV_editNeederUid=''"
+      :need-request="DV_needRequests[DV_editNeedRequestUid]"
+      @edit-form-closed="clearEditUidFlags"
       @create-need-request="saveNeedRequest"
     ></create-modify-need-request-modal>
   </div>
@@ -116,7 +126,8 @@ export default {
   data() {
     return {
       DV_selectedNeeder: "",
-      DV_editNeederUid: "",
+      DV_editNeedRequestUid: "",
+      DV_editNeed: "",
 
       // TODO- Using temp data for now, We'll get real needers data from prop usersNeeders
       DV_needRequests: {
@@ -215,7 +226,7 @@ export default {
         window.G_firebase_data.IV_user_info['user_uid'],
         data.public_metadata,
         data.private_metadata,
-        this.DV_editNeederUid
+        this.DV_editNeedRequestUid
       )
 
       notifier.async(resp,
@@ -272,8 +283,16 @@ export default {
       alert("TODO- in UserNeedRequests:deleteNeed")
     },
     editNeedRequest(needer_uid) {
-      this.DV_editNeederUid = needer_uid;
+      this.DV_editNeedRequestUid = needer_uid;
       this.openCreateNeedRequestModal()
+    },
+    editNeed(need) {
+      this.DV_editNeed = need;
+      this.openAddNeedModal();
+    },
+    clearEditUidFlags() {
+      this.DV_editNeedRequestUid = "";
+      this.DV_editNeed = "";
     }
   }
 }

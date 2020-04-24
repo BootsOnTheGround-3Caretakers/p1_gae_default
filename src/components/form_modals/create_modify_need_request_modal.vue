@@ -15,7 +15,7 @@
                 class="form-control"
                 name="public_metadata"
                 v-model="DV_publicMetadata"
-                disabled
+                
                 placeholder="Coming soon.."
               />
             </div>
@@ -31,14 +31,14 @@
                 class="form-control"
                 name="private_metadata"
                 v-model="DV_privateMetadata"
-                disabled
+                
                 placeholder="Coming soon.."
               />
             </div>
           </div>
           
           <div class="form-group">
-            <button class="btn btn-primary float-right mt-3" @click.prevent="assignNeed">Create</button>
+            <button class="btn btn-primary float-right mt-3" @click.prevent="assignNeed">Save</button>
             <button class="btn btn-primary float-right mt-3 mr-2" @click.prevent="close">Cancel</button>
           </div>
         </form>
@@ -51,6 +51,7 @@
 import AWN from "awesome-notifications";
 
 export default {
+  props: ['needRequest'],
   data() {
     return {
       DV_privateMetadata: "",
@@ -63,6 +64,7 @@ export default {
     },
     close() {
       this.clearForm();
+      this.$emit("edit-form-closed");
       this.$modal.hide('createNeedRequestModal');
     },
     clearForm() {
@@ -76,6 +78,14 @@ export default {
       }
       this.$emit("create-need-request", data);
       this.close()
+    }
+  },
+  watch: {
+    needRequest() {
+      if (this.needRequest) {
+        this.DV_publicMetadata = this.needRequest.public_metadata;
+        this.DV_privateMetadata = this.needRequest.private_metadata;
+      }
     }
   }
 }

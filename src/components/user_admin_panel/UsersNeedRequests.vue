@@ -12,7 +12,7 @@
               <th>#</th>
               <th>Primary Need</th>
               <th>Cluster</th>
-              <!-- <th>Edit</th> -->
+              <th>Edit</th>
               <th>Delete</th>
             </thead>
             <tbody>
@@ -27,11 +27,11 @@
                   >{{neederDisplayName(key)}}</span>
 
                   <span class="float-right d-flex" v-if="DV_selectedNeeder === key">
-                    <!-- <p class="mr-2" data-placement="top" title="Edit">
-                      <button class="btn btn-primary btn-xs" >
+                    <p class="mr-2" data-placement="top" title="Edit">
+                      <button @click.stop="editNeedRequest(key)" class="btn btn-primary btn-xs" >
                         <i class="fas fa-pencil"></i>
                       </button>
-                    </p> -->
+                    </p>
                     <p data-placement="top" title="Delete">
                       <button class="btn btn-danger btn-xs" >
                         <i class="fas fa-trash"></i>
@@ -48,7 +48,7 @@
                           <th>Remove</th>
                         </thead>
                         <tbody>
-                          <tr v-for="(need, index1) in DV_needRequests[key]">
+                          <tr v-for="(need, index1) in DV_needRequests[key].needs">
                             <td>{{index1+1}}</td>
                             <td>{{need.name}}</td>
                             <td>{{need.special_notes}}</td>
@@ -70,13 +70,13 @@
                   </div>
                 </td>
                 <td><span v-if="DV_selectedNeeder !== key">Partial</span></td>
-<!--                 <td>
+                <td>
                   <p v-if="DV_selectedNeeder !== key" data-placement="top" title="Edit">
-                    <button class="btn btn-primary btn-xs" >
-                      Edit
+                    <button @click.stop="editNeedRequest(key)" class="btn btn-primary btn-xs" >
+                      <i class="fas fa-pencil"></i>
                     </button>
                   </p>
-                </td> -->
+                </td>
                 <td>
                   <p v-if="DV_selectedNeeder !== key" data-placement="top" title="Remove">
                     <button @click.stop="deleteNeed" class="btn btn-danger btn-xs" >
@@ -96,6 +96,8 @@
     ></create-modify-need-to-needer-modal>
     <create-modify-need-request-modal 
       ref="createNeedRequestModal" 
+      :need-request="DV_needRequests[DV_editNeederUid]"
+      @edit-form-closed="DV_editNeederUid=''"
       @create-need-request="saveNeedRequest"
     ></create-modify-need-request-modal>
   </div>
@@ -114,67 +116,76 @@ export default {
   data() {
     return {
       DV_selectedNeeder: "",
+      DV_editNeederUid: "",
 
       // TODO- Using temp data for now, We'll get real needers data from prop usersNeeders
       DV_needRequests: {
-        "5709989402378240" : [
-        {
-          "need_uid" : "5713573250596864",
-          "special_notes" : "special requests 5713573250596864",
-          "description": "Test description",
-          "name": "Grocery need"
+        "5709989402378240" : {
+          "public_metadata": "Sample Public Metadata",
+          "private_metadata": "Sample Private Metadata",
+          "needs": [
+            {
+              "need_uid" : "5713573250596864",
+              "special_notes" : "special requests 5713573250596864",
+              "description": "Test description",
+              "name": "Grocery need"
+            },
+            {
+              "need_uid" : "5713573250596865",
+              "special_notes" : "special requests 5713573250596865",
+              "description": "Description 2",
+              "name": "Delivery need"
+            },
+            {
+              "need_uid" : "5713573250596866",
+              "special_notes" : "special requests 5713573250596866",
+              "description": "Test description 3",
+              "name": "Water need"
+            },
+            {
+              "need_uid" : "5713573250596864",
+              "special_notes" : "special requests 5713573250596864",
+              "description": "Test description",
+              "name": "Grocery need"
+            },
+            {
+              "need_uid" : "5713573250596865",
+              "special_notes" : "special requests 5713573250596865",
+              "description": "Description 2",
+              "name": "Delivery need"
+            },
+            {
+              "need_uid" : "5713573250596866",
+              "special_notes" : "special requests 5713573250596866",
+              "description": "Test description 3",
+              "name": "Water need"
+            }
+          ]
         },
-        {
-          "need_uid" : "5713573250596865",
-          "special_notes" : "special requests 5713573250596865",
-          "description": "Description 2",
-          "name": "Delivery need"
-        },
-        {
-          "need_uid" : "5713573250596866",
-          "special_notes" : "special requests 5713573250596866",
-          "description": "Test description 3",
-          "name": "Water need"
-        },
-        {
-          "need_uid" : "5713573250596864",
-          "special_notes" : "special requests 5713573250596864",
-          "description": "Test description",
-          "name": "Grocery need"
-        },
-        {
-          "need_uid" : "5713573250596865",
-          "special_notes" : "special requests 5713573250596865",
-          "description": "Description 2",
-          "name": "Delivery need"
-        },
-        {
-          "need_uid" : "5713573250596866",
-          "special_notes" : "special requests 5713573250596866",
-          "description": "Test description 3",
-          "name": "Water need"
+        "5709989402378241" : {
+          "public_metadata": "Sample Public Metadata",
+          "private_metadata": "Sample Private Metadata",
+          "needs": [
+            {
+              "need_uid" : "5713573250596867",
+              "special_notes" : "special requests 5713573250596867",
+              "description": "Test description",
+              "name": "Delivery need"
+            },
+            {
+              "need_uid" : "5713573250596868",
+              "special_notes" : "special requests 5713573250596868",
+              "description": "Description 2",
+              "name": "Grocery need"
+            },
+            {
+              "need_uid" : "5713573250596869",
+              "special_notes" : "special requests 5713573250596869",
+              "description": "Test description 3",
+              "name": "Water need"
+            }
+          ]
         }
-      ],
-      "5709989402378241" : [
-          {
-            "need_uid" : "5713573250596867",
-            "special_notes" : "special requests 5713573250596867",
-            "description": "Test description",
-            "name": "Delivery need"
-          },
-          {
-            "need_uid" : "5713573250596868",
-            "special_notes" : "special requests 5713573250596868",
-            "description": "Description 2",
-            "name": "Grocery need"
-          },
-          {
-            "need_uid" : "5713573250596869",
-            "special_notes" : "special requests 5713573250596869",
-            "description": "Test description 3",
-            "name": "Water need"
-          }
-        ]
       }
     }
   },
@@ -204,7 +215,7 @@ export default {
         window.G_firebase_data.IV_user_info['user_uid'],
         data.public_metadata,
         data.private_metadata,
-        this.DV_selectedNeeder
+        this.DV_editNeederUid
       )
 
       notifier.async(resp,
@@ -259,6 +270,10 @@ export default {
     },
     deleteNeed() {
       alert("TODO- in UserNeedRequests:deleteNeed")
+    },
+    editNeedRequest(needer_uid) {
+      this.DV_editNeederUid = needer_uid;
+      this.openCreateNeedRequestModal()
     }
   }
 }

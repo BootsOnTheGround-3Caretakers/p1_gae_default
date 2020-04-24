@@ -48,7 +48,7 @@ function assignNeedToNeeder(firebase_email, firebase_token, user_uid, needer_uid
     /////</end> input validation
 
     ajax({
-      url: 'https://p1s3-web-requests-dot-aqueous-choir-160420.appspot.com/p1s3t2-assign-need-to-needer',
+      url: 'https://p1s3-web-requests-dot-aqueous-choir-160420.appspot.com/p1s3t2-create-modify-need-to-needer-join',
       method: 'POST',
       data: {
         'p1s3_firebase_email': firebase_email,

@@ -20,36 +20,6 @@
           </div>
 
           <div class="form-group row">
-            <label for="public_metadata" class="col-md-4 col-form-label text-md-right">Public Metadata</label>
-
-            <div class="col-md-6">
-              <input
-                id="public_metadata"
-                type="text"
-                class="form-control"
-                name="public_metadata"
-                disabled
-                placeholder="Coming soon.."
-              />
-            </div>
-          </div>
-
-          <div class="form-group row">
-            <label for="private_metadata" class="col-md-4 col-form-label text-md-right">Private Metadata</label>
-
-            <div class="col-md-6">
-              <input
-                id="private_metadata"
-                type="text"
-                class="form-control"
-                name="private_metadata"
-                disabled
-                placeholder="Coming soon.."
-              />
-            </div>
-          </div>
-
-          <div class="form-group row">
             <label for="special_requests" class="col-md-4 col-form-label text-md-right">Special requests</label>
 
             <div class="col-md-6">

@@ -2,7 +2,7 @@
   <div class="container mt-3 text-left">
     <div class="d-flex justify-content-between mb-3">
       <h2>Need Requests Management</h2>
-      <button @click.stop="createNeedRequest" class="btn btn-primary">Create Need Request</button>
+      <button @click.stop="openCreateNeedRequestModal" class="btn btn-primary">Create Need Request</button>
     </div>
     <div class="row mt-3">
       <div class="col-md-12">
@@ -94,18 +94,23 @@
       ref="addNeedtoNeedRequestForm" 
       @assign-need="addNeedToNeeder"
     ></create-modify-need-to-needer-modal>
+    <create-modify-need-request-modal 
+      ref="createNeedRequestModal" 
+      @create-need-request="saveNeedRequest"
+    ></create-modify-need-request-modal>
   </div>
 </template>
 
 <script>
 import createModifyNeedToNeederModal from '../form_modals/create_modify_need_to_needer_modal'
-import createNeederRequest from '../../includes/json_tasks/p1s3/p1s3t12'
+import createModifyNeedRequestModal from '../form_modals/create_modify_need_request_modal'
+import createModifyNeedeRequest from '../../includes/json_tasks/p1s3/p1s3t12'
 import assignNeedToNeeder from '../../includes/json_tasks/p1s3/p1s3t2'
 import AWN from "awesome-notifications";
 
 export default {
   props: ["usersNeeders"],
-  components: {createModifyNeedToNeederModal},
+  components: {createModifyNeedToNeederModal, createModifyNeedRequestModal},
   data() {
     return {
       DV_selectedNeeder: "",
@@ -183,8 +188,7 @@ export default {
       }
       return key;
     },
-    createNeedRequest() {
-      this.DV_selectedNeeder = "";
+    saveNeedRequest(data) {
       var popup_options = {
         labels: {
           async: "Creating new need request.",
@@ -194,10 +198,13 @@ export default {
       };
       let notifier = new AWN(popup_options);
 
-      var resp = createNeederRequest(
+      var resp = createModifyNeedeRequest(
         window.G_firebase_auth.IV_email_address,
         window.G_firebase_auth.IV_id_token,
-        window.G_firebase_data.IV_user_info['user_uid']
+        window.G_firebase_data.IV_user_info['user_uid'],
+        data.public_metadata,
+        data.private_metadata,
+        this.DV_selectedNeeder
       )
 
       notifier.async(resp,
@@ -208,6 +215,9 @@ export default {
           notifier.alert("There was an error creating the need request, Please try again later.");
         } 
       );
+    },
+    openCreateNeedRequestModal() {
+      this.$refs.createNeedRequestModal.open();      
     },
     openAddNeedModal() {
       if (this.DV_selectedNeeder === "") {return;}

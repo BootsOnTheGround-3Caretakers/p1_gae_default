@@ -4,12 +4,12 @@ import { RC, CR, AJRS } from '../../base_i2_success_codes'
 import base_i3_log from '../../base_i3_logging'
 import { ajax } from 'noquery-ajax'
 
-function createNeederRequest(firebase_email, firebase_token, user_uid) {
+function createModifyNeedeRequest(firebase_email, firebase_token, user_uid, public_metadata=null, private_metadata=null, needer_uid=null) {
   return new Promise(function (resolve, reject) {
     var return_msg = "";
     var debug_data = [];
     var call_result = {};
-    var task_id = "p1s3t12CreateNeederRequest";
+    var task_id = "p1s3t12CreateModifyNeedeRequest";
     var response_data = {};
 
     ///// input validation
@@ -19,6 +19,17 @@ function createNeederRequest(firebase_email, firebase_token, user_uid) {
     debug_data.push(call_result);
     // call_result = bi1_data_validation.is_user_uid(user_uid);
     // debug_data.push(call_result);
+    // call_result = bi1_data_validation.is_user_uid(needer_uid);
+    // debug_data.push(call_result);
+
+    if (public_metadata !== null) {
+      call_result = bi1_data_validation.is_string(public_metadata);
+      debug_data.push(call_result);
+    }
+    if (private_metadata !== null) {
+      call_result = bi1_data_validation.is_string(private_metadata);
+      debug_data.push(call_result);
+    }
 
 
     if (call_result[CR.success] !== RC.success) {
@@ -30,12 +41,15 @@ function createNeederRequest(firebase_email, firebase_token, user_uid) {
     /////</end> input validation
 
     ajax({
-      url: 'https://p1s3-web-requests-dot-aqueous-choir-160420.appspot.com/p1s3t12-create-needer-request',
+      url: 'https://p1s3-web-requests-dot-aqueous-choir-160420.appspot.com/p1s3t12-create-modify-needer-request',
       method: 'POST',
       data: {
         'p1s3_firebase_email': firebase_email,
         'p1s3_token': firebase_token,
-        'p1s3t12_user_uid': user_uid
+        'p1s3t12_user_uid': user_uid,
+        'p1s3t12_needer_uid': needer_uid,
+        'p1s3t12_public_metadata': public_metadata,
+        'p1s3t12_private_metadata': private_metadata
       },
       success: function (result) {
         response_data = result;
@@ -51,4 +65,4 @@ function createNeederRequest(firebase_email, firebase_token, user_uid) {
 };
 
 
-export default createNeederRequest
+export default createModifyNeedeRequest
